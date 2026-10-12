@@ -1,0 +1,272 @@
+{
+  "app": {
+    "key": "doctor-booking",
+    "name": "MediSlot (doctor booking demo)",
+    "chooserTitle": "How can we help?",
+    "chooserSubtitle": "Walk through booking your first appointment, or see how to manage the ones you already have.",
+    "accentColor": "#0369a1",
+    "hostUrl": "/demo/doctor-booking.html"
+  },
+  "tours": [
+    {
+      "id": "book-appointment",
+      "title": "Booking an appointment",
+      "description": "Every step of the booking form, from choosing a service to confirming.",
+      "version": 1,
+      "autoStart": "firstVisit",
+      "isPublished": true,
+      "finishLabel": "Start booking",
+      "steps": [
+        {
+          "page": "/demo/doctor-booking.html",
+          "badge": "Welcome",
+          "title": "Welcome to MediSlot",
+          "body": "Book a doctor in five short steps. We'll fill in an example as we go. Nothing is booked until you press Confirm yourself.",
+          "before": [
+            { "type": "navigate", "url": "#book" },
+            { "type": "dispatch", "event": "booking:reset" }
+          ]
+        },
+        {
+          "target": "#stepper",
+          "placement": "bottom",
+          "badge": "Overview",
+          "title": "Five steps",
+          "body": "Your progress shows here. Finished steps get a tick, and you can click one to go back and change it.",
+          "before": [{ "type": "call", "name": "wizardStep", "args": { "step": 1 } }]
+        },
+        {
+          "target": "#specGrid",
+          "placement": "bottom",
+          "badge": "Step 1",
+          "title": "Choose a service",
+          "body": "Pick the kind of doctor you need. We've chosen Dermatology for this example.",
+          "before": [
+            { "type": "call", "name": "wizardStep", "args": { "step": 1 } },
+            { "type": "click", "selector": ".spec-card[data-spec=\"dermatology\"]", "when": { "notExists": ".spec-card.selected" } }
+          ]
+        },
+        {
+          "target": "#visitType",
+          "placement": "bottom",
+          "badge": "Step 1",
+          "title": "In person, video or phone",
+          "body": "Video and phone appointments are often available sooner, and you don't need to travel.",
+          "before": [{ "type": "call", "name": "wizardStep", "args": { "step": 1 } }]
+        },
+        {
+          "target": "#summary",
+          "placement": "left",
+          "badge": "Summary",
+          "title": "Your appointment so far",
+          "body": "This panel fills in as you go, so you can always see what you've chosen and what it will cost."
+        },
+        {
+          "target": "#doctorOptions",
+          "placement": "top",
+          "badge": "Step 2",
+          "title": "Choose a doctor",
+          "body": "Each doctor shows their rating, languages, fee and next free day. Sort by soonest, rating or fee, or tick Any available doctor.",
+          "before": [{ "type": "call", "name": "wizardStep", "args": { "step": 2, "spec": "dermatology" } }]
+        },
+        {
+          "target": "#opt-lucas-ferreira",
+          "placement": "bottom",
+          "badge": "Step 2",
+          "title": "Pick one",
+          "body": "We've picked Dr. Lucas Ferreira. Choosing a different doctor later clears the date and time you picked.",
+          "before": [
+            { "type": "call", "name": "wizardStep", "args": { "step": 2, "spec": "dermatology" } },
+            { "type": "click", "selector": "#opt-lucas-ferreira", "when": { "notExists": ".doc-option.selected" } }
+          ]
+        },
+        {
+          "target": "#calendar",
+          "placement": "right",
+          "badge": "Step 3",
+          "title": "Pick a day",
+          "body": "Days with a green dot have free times. Grey days are fully booked or the clinic is closed. We've picked the first free day.",
+          "before": [
+            { "type": "call", "name": "wizardStep", "args": { "step": 3, "spec": "dermatology" } },
+            { "type": "click", "selector": ".day.available", "when": { "notExists": ".day.selected" } }
+          ]
+        },
+        {
+          "target": "#slotGroups",
+          "placement": "left",
+          "badge": "Step 3",
+          "title": "Pick a time",
+          "body": "Times that are crossed out are taken. We've picked the earliest free slot.",
+          "before": [
+            { "type": "call", "name": "wizardStep", "args": { "step": 3, "spec": "dermatology" } },
+            { "type": "click", "selector": ".day.available", "when": { "notExists": ".day.selected" } },
+            { "type": "waitFor", "selector": "#slotGroups" },
+            { "type": "click", "selector": ".slot:not(.booked)", "when": { "notExists": ".slot.selected" } }
+          ]
+        },
+        {
+          "target": "#patientForm",
+          "placement": "top",
+          "badge": "Step 4",
+          "title": "Your details",
+          "body": "Name, date of birth and contact details let the clinic find your records and send reminders. We've filled in an example.",
+          "before": [
+            { "type": "call", "name": "wizardStep", "args": { "step": 4, "spec": "dermatology" } },
+            { "type": "setValue", "selector": "#pName", "value": "Jamie Sutton" },
+            { "type": "setValue", "selector": "#pDob", "value": "1988-03-14" },
+            { "type": "setValue", "selector": "#pPhone", "value": "07700 900461" },
+            { "type": "setValue", "selector": "#pEmail", "value": "jamie@example.com" }
+          ]
+        },
+        {
+          "target": "#insuranceCard",
+          "placement": "top",
+          "badge": "Step 4",
+          "title": "Add your insurance",
+          "body": "Choose your insurer and the summary shows what you'll pay. We've picked BlueShield, which covers 80%.",
+          "before": [
+            { "type": "call", "name": "wizardStep", "args": { "step": 4, "spec": "dermatology" } },
+            { "type": "setValue", "selector": "#pInsurer", "value": "80" },
+            { "type": "setValue", "selector": "#pMemberId", "value": "BS-4412-0981" }
+          ]
+        },
+        {
+          "target": "#costBox",
+          "placement": "left",
+          "badge": "Summary",
+          "title": "What you'll pay",
+          "body": "The fee, minus what your insurance covers. You pay at the clinic, not now.",
+          "before": [{ "type": "call", "name": "wizardStep", "args": { "step": 4, "spec": "dermatology" } }]
+        },
+        {
+          "target": "#field-consent",
+          "placement": "top",
+          "badge": "Step 4",
+          "title": "Privacy and reminders",
+          "body": "You need to accept this to continue. Reminders go out 24 hours before your appointment.",
+          "before": [
+            { "type": "call", "name": "wizardStep", "args": { "step": 4, "spec": "dermatology" } },
+            { "type": "click", "selector": "#pConsent", "when": { "notExists": "#pConsent:checked" } }
+          ]
+        },
+        {
+          "target": "#reviewList",
+          "placement": "bottom",
+          "badge": "Step 5",
+          "title": "Check everything",
+          "body": "One last look. Press Change on any row to jump back to that step.",
+          "before": [{ "type": "call", "name": "wizardStep", "args": { "step": 5, "spec": "dermatology" } }]
+        },
+        {
+          "target": "#wizNext",
+          "placement": "top",
+          "badge": "Step 5",
+          "title": "Confirm",
+          "body": "Press Confirm appointment to book. You'll get a confirmation code and an email straight away.",
+          "before": [{ "type": "call", "name": "wizardStep", "args": { "step": 5, "spec": "dermatology" } }]
+        }
+      ]
+    },
+    {
+      "id": "manage-appointments",
+      "title": "Managing your appointments",
+      "description": "Check in, reschedule, cancel and keep track of notifications.",
+      "version": 1,
+      "autoStart": "never",
+      "isPublished": true,
+      "steps": [
+        {
+          "page": "/demo/doctor-booking.html",
+          "target": ".nav-item[data-view=\"appointments\"]",
+          "placement": "auto",
+          "badge": "Navigation",
+          "title": "Your appointments",
+          "body": "Everything you've booked is here. The badge shows how many are coming up.",
+          "before": [
+            { "type": "call", "name": "closeDialogs" },
+            { "type": "navigate", "url": "#appointments" }
+          ]
+        },
+        {
+          "target": "#checkinBanner",
+          "placement": "bottom",
+          "badge": "Check in",
+          "title": "Check in online",
+          "body": "From 24 hours before an in-person visit, check in here and skip the queue at the front desk.",
+          "before": [{ "type": "navigate", "url": "#appointments" }]
+        },
+        {
+          "target": "#apptTabs",
+          "placement": "bottom",
+          "badge": "History",
+          "title": "Upcoming and past",
+          "body": "Past visits keep their summary and a Book again button for follow-ups.",
+          "before": [
+            { "type": "navigate", "url": "#appointments" },
+            { "type": "click", "selector": ".appt-tab[data-appt-tab=\"upcoming\"]" }
+          ]
+        },
+        {
+          "target": "#appt-a2",
+          "placement": "bottom",
+          "badge": "Upcoming",
+          "title": "One appointment",
+          "body": "The date, doctor, type and status. Pending means the clinic hasn't confirmed it yet. Video calls get a Join call button.",
+          "before": [
+            { "type": "call", "name": "closeDialogs" },
+            { "type": "navigate", "url": "#appointments" }
+          ]
+        },
+        {
+          "target": "#appt-a2 .reschedule-btn",
+          "placement": "left",
+          "badge": "Change",
+          "title": "Reschedule",
+          "body": "This takes you to the calendar with the same doctor already chosen, so you only pick a new time.",
+          "before": [
+            { "type": "call", "name": "closeDialogs" },
+            { "type": "navigate", "url": "#appointments" }
+          ]
+        },
+        {
+          "target": "#cancelDialog .dialog",
+          "placement": "auto",
+          "badge": "Cancel",
+          "title": "Cancelling",
+          "body": "Tell us why and confirm. It's free up to 24 hours before. After that a late fee applies, and the dialog tells you which applies.",
+          "before": [
+            { "type": "call", "name": "openCancelDialog", "args": { "id": "a2" }, "when": { "notExists": "#cancelDialog .dialog" } },
+            { "type": "waitFor", "selector": "#cancelDialog .dialog" }
+          ]
+        },
+        {
+          "target": "#notifPanel",
+          "placement": "auto",
+          "badge": "Notifications",
+          "title": "Stay up to date",
+          "body": "Reminders, results and replies from your doctors appear here. The red badge counts the ones you haven't read.",
+          "before": [
+            { "type": "call", "name": "closeDialogs" },
+            { "type": "click", "selector": "#notifBtn", "when": { "notExists": "#notifPanel" } },
+            { "type": "waitFor", "selector": "#notifPanel" }
+          ]
+        },
+        {
+          "target": "#avatarBtn",
+          "placement": "bottom",
+          "badge": "Account",
+          "title": "Your details",
+          "body": "Update your contact details, saved insurance and reminder settings. They're filled in for you every time you book.",
+          "before": [{ "type": "dispatch", "event": "booking:notifications", "detail": { "open": false } }]
+        },
+        {
+          "target": "#helpBtn",
+          "placement": "bottom",
+          "badge": "Help",
+          "title": "Help is always here",
+          "body": "Press Help to replay this tour, or to walk through booking a new appointment."
+        }
+      ]
+    }
+  ]
+}

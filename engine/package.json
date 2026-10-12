@@ -1,0 +1,21 @@
+{
+  "name": "@guided-tours/engine",
+  "version": "1.0.0",
+  "description": "Framework-agnostic, config-driven guided tour engine. Zero runtime dependencies.",
+  "type": "module",
+  "main": "dist/tour.esm.js",
+  "types": "dist/types/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "jsdom": "^26.1.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

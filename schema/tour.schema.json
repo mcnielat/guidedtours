@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://guided-tours/schema/tour.schema.json",
+  "title": "Guided tour",
+  "description": "A tour is pure data: the engine reads it and runs it. Mirrors engine/src/types.ts.",
+  "type": "object",
+  "required": ["id", "title", "steps"],
+  "additionalProperties": true,
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$", "description": "Used in Tour.start(id) and data-tour-start=\"id\"." },
+    "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "description": { "type": "string", "description": "Shown under the title in the chooser." },
+    "version": { "type": "integer", "minimum": 1, "default": 1, "description": "Bump to show the tour again to users who completed or skipped it." },
+    "autoStart": { "enum": ["never", "firstVisit", "always"], "default": "never" },
+    "showInChooser": { "type": "boolean", "default": true },
+    "finishLabel": { "type": "string", "default": "Finish" },
+    "steps": { "type": "array", "minItems": 1, "maxItems": 100, "items": { "$ref": "#/$defs/step" } }
+  },
+  "$defs": {
+    "step": {
+      "type": "object",
+      "required": ["title", "body"],
+      "properties": {
+        "id": { "type": "string" },
+        "page": { "type": "string", "description": "Same-site path this step lives on. If the user is on another page, the engine navigates there and resumes." },
+        "target": { "type": "string", "description": "CSS selector of the element to spotlight. Omit for a centred step." },
+        "targetText": { "type": "string", "description": "Pick the match whose text contains this." },
+        "title": { "type": "string", "minLength": 1 },
+        "body": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "badge": { "type": "string" },
+        "placement": { "enum": ["auto", "top", "bottom", "left", "right", "center"], "default": "auto" },
+        "padding": { "type": "integer", "minimum": 0, "maximum": 64, "default": 8 },
+        "timeout": { "type": "integer", "minimum": 0, "maximum": 30000, "description": "How long to wait for the target (ms)." },
+        "onMissing": { "enum": ["skip", "center"], "default": "skip" },
+        "before": { "type": "array", "maxItems": 20, "items": { "$ref": "#/$defs/action" }, "description": "Run before highlighting, so the target is on screen. Re-run on Back: make them idempotent with `when`." }
+      }
+    },
+    "condition": {
+      "type": "object",
+      "properties": {
+        "exists": { "type": "string" },
+        "notExists": { "type": "string" }
+      }
+    },
+    "action": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "enum": ["click", "navigate", "waitFor", "delay", "dispatch", "call", "setValue"] },
+        "when": { "$ref": "#/$defs/condition" }
+      },
+      "allOf": [
+        { "if": { "properties": { "type": { "const": "click" } } }, "then": { "required": ["selector"], "properties": { "selector": { "type": "string" }, "text": { "type": "string" } } } },
+        { "if": { "properties": { "type": { "const": "navigate" } } }, "then": { "required": ["url"], "properties": { "url": { "type": "string", "description": "Hash, query or same-site path." } } } },
+        { "if": { "properties": { "type": { "const": "waitFor" } } }, "then": { "required": ["selector"], "properties": { "selector": { "type": "string" }, "timeout": { "type": "integer" } } } },
+        { "if": { "properties": { "type": { "const": "delay" } } }, "then": { "required": ["ms"], "properties": { "ms": { "type": "integer", "minimum": 0, "maximum": 10000 } } } },
+        { "if": { "properties": { "type": { "const": "dispatch" } } }, "then": { "required": ["event"], "properties": { "event": { "type": "string" }, "selector": { "type": "string" }, "detail": {} } } },
+        { "if": { "properties": { "type": { "const": "call" } } }, "then": { "required": ["name"], "properties": { "name": { "type": "string" }, "args": {} } } },
+        { "if": { "properties": { "type": { "const": "setValue" } } }, "then": { "required": ["selector", "value"], "properties": { "selector": { "type": "string" }, "value": { "type": "string" } } } }
+      ]
+    }
+  }
+}

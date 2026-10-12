@@ -1,0 +1,114 @@
+<nav class="crumbs">
+  <a routerLink="/apps">Systems</a> /
+  <a [routerLink]="['/apps', appKey()]">{{ app()?.name ?? appKey() }}</a> /
+  {{ isNew() ? 'New tour' : tour()?.title }}
+</nav>
+
+@if (tour(); as t) {
+  <!-- (input)/(change) bubble up from every field, so any edit marks the tour dirty. -->
+  <div class="editor" (input)="touch()" (change)="touch()">
+    <section class="card" data-tour="tour-settings">
+      <div class="grid-3">
+        <label class="field">
+          <span>Title</span>
+          <input name="tourTitle" [(ngModel)]="t.title" placeholder="Email process walkthrough" />
+          @for (m of errors()['title']; track m) { <small class="error">{{ m }}</small> }
+        </label>
+        <label class="field">
+          <span>Tour id <small class="muted">(Tour.start("…"))</small></span>
+          <input name="tourId" class="mono" [(ngModel)]="t.id" placeholder="email-walkthrough" />
+          @for (m of errors()['id']; track m) { <small class="error">{{ m }}</small> }
+        </label>
+        <label class="field">
+          <span>Auto-start</span>
+          <select name="autoStart" [(ngModel)]="t.autoStart">
+            @for (o of autoStarts; track o.value) { <option [value]="o.value">{{ o.label }}</option> }
+          </select>
+        </label>
+      </div>
+      <label class="field">
+        <span>Description <small class="muted">(shown in the chooser)</small></span>
+        <input name="tourDesc" [(ngModel)]="t.description" />
+      </label>
+      <div class="row wrap">
+        <label class="toggle"><input type="checkbox" name="pub" [(ngModel)]="t.isPublished" /> <span>Published</span></label>
+        <label class="toggle"><input type="checkbox" name="inChooser" [(ngModel)]="t.showInChooser" /> <span>List in chooser</span></label>
+        <label class="field inline"><span>Finish button</span>
+          <input name="finish" [(ngModel)]="t.finishLabel" placeholder="Finish" size="10" /></label>
+        <span class="grow"></span>
+        <span class="muted">Version {{ t.version }}</span>
+        <button type="button" class="btn small" (click)="bumpVersion()"
+          title="Users who completed or skipped this tour will see it again (if it auto-starts)">
+          Show again to everyone
+        </button>
+      </div>
+    </section>
+
+    <div class="tabs">
+      <button type="button" [class.active]="tab() === 'steps'" (click)="showSteps()">Steps ({{ t.steps.length }})</button>
+      <button type="button" [class.active]="tab() === 'json'" (click)="showJson()" data-tour="json-tab">JSON</button>
+    </div>
+
+    @if (tab() === 'steps') {
+      <div class="split">
+        <aside class="steps" data-tour="steps-list">
+          <ol cdkDropList (cdkDropListDropped)="drop($event)">
+            @for (s of t.steps; track s; let i = $index) {
+              <li cdkDrag [class.active]="i === selected()" [class.invalid]="stepHasErrors(i)" (click)="selected.set(i)">
+                <span class="handle" cdkDragHandle title="Drag to reorder">⋮⋮</span>
+                <span class="num">{{ i + 1 }}</span>
+                <span class="grow">
+                  <strong>{{ s.title || '(untitled)' }}</strong>
+                  <small class="mono muted">{{ s.page ? s.page + ' · ' : '' }}{{ s.target || 'centred' }}</small>
+                </span>
+                @if (s.before?.length) { <span class="pill" title="Actions before this step">⚡{{ s.before!.length }}</span> }
+              </li>
+            }
+          </ol>
+          <button type="button" class="btn small block" (click)="addStep()">+ Add step after #{{ selected() + 1 }}</button>
+        </aside>
+
+        <section class="card step-pane">
+          @if (t.steps[selected()]; as s) {
+            <div class="row">
+              <h2 class="grow">Step {{ selected() + 1 }} of {{ t.steps.length }}</h2>
+              <button type="button" class="btn small" (click)="duplicateStep(selected())">Duplicate</button>
+              <button type="button" class="btn small danger" [disabled]="t.steps.length === 1" (click)="removeStep(selected())">Delete step</button>
+            </div>
+            <app-step-editor [step]="s" [errors]="stepErrors(selected())" />
+          }
+        </section>
+      </div>
+    } @else {
+      <section class="card">
+        <p class="muted small">
+          The exact config the engine receives. Paste a tour from another system, or edit in bulk. Validated on save.
+          Schema: <a href="/api/schema" target="_blank">/api/schema</a>
+        </p>
+        <textarea class="json mono" spellcheck="false" [value]="jsonText()" (input)="jsonText.set($any($event.target).value)"></textarea>
+        @if (jsonError()) { <p class="error">{{ jsonError() }}</p> }
+      </section>
+    }
+  </div>
+
+  <footer class="savebar" data-tour="save-bar">
+    @if (message(); as m) {
+      <span [class.error]="m.error" [class.ok]="!m.error">{{ m.text }}</span>
+    } @else if (dirty()) {
+      <span class="muted">Unsaved changes</span>
+    }
+    <span class="grow"></span>
+    @if (!isNew()) { <button type="button" class="btn danger ghost" (click)="remove()">Delete tour</button> }
+    @if (previewUrl(); as url) {
+      <a class="btn" [href]="url" target="_blank" rel="noopener" [class.disabled]="dirty()"
+        [title]="dirty() ? 'Save first to try the latest version' : 'Open the host app and start this tour'">Try it ↗</a>
+    }
+    <button type="button" class="btn primary" [disabled]="saving()" (click)="save()">
+      {{ saving() ? 'Saving…' : isNew() ? 'Create tour' : 'Save' }}
+    </button>
+  </footer>
+} @else if (loadError()) {
+  <p class="error">{{ loadError() }}</p>
+} @else {
+  <p class="muted">Loading…</p>
+}

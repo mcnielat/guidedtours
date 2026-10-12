@@ -1,0 +1,11 @@
+{
+  "name": "guided-tours",
+  "private": true,
+  "description": "Config-driven guided tour system: TypeScript engine, .NET 8 API, Angular admin.",
+  "scripts": {
+    "setup": "cd engine && npm install && cd ../admin && npm install && cd ../e2e && npm install",
+    "build": "cd engine && npm run build && cd ../admin && npx ng build",
+    "start": "dotnet run --project server/GuidedTours.Api --launch-profile http",
+    "test": "cd engine && npm test && cd ../server && dotnet test && cd ../e2e && npx playwright test"
+  }
+}

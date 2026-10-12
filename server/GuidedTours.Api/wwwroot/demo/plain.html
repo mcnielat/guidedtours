@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Acme Billing (second demo system)</title>
+  <style>
+    /* A deliberately different system: different markup, styles and accent. */
+    :root { --gt-accent: #c2410c; }
+    body { margin: 0; font: 15px/1.5 Georgia, serif; background: #fffbeb; color: #1c1917; }
+    header { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; background: #1c1917; color: #fef3c7; }
+    header button { background: #c2410c; color: #fff; border: 0; border-radius: 4px; padding: 7px 12px; font: inherit; cursor: pointer; }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 24px; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .tile { background: #fff; border: 1px solid #e7e5e4; padding: 16px; }
+    .tile b { display: block; font-size: 26px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 18px; background: #fff; }
+    td, th { border: 1px solid #e7e5e4; padding: 8px 10px; text-align: left; }
+    @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>Acme Billing</strong>
+    <button data-tour-start="billing-basics">Take the tour</button>
+  </header>
+  <div class="wrap">
+    <div class="grid">
+      <div class="tile" id="outstanding">Outstanding<b>$12,480</b></div>
+      <div class="tile" id="overdue">Overdue<b>$1,920</b></div>
+      <div class="tile" id="paid">Paid this month<b>$48,200</b></div>
+    </div>
+    <table id="invoices">
+      <tr><th>Invoice</th><th>Customer</th><th>Amount</th><th>Status</th></tr>
+      <tr><td>INV-1042</td><td>Northwind</td><td>$2,400</td><td>Overdue</td></tr>
+      <tr><td>INV-1043</td><td>Contoso</td><td>$980</td><td>Sent</td></tr>
+    </table>
+  </div>
+  <!-- Same engine, different app key: completely separate tours and progress. -->
+  <script src="/sdk/tour.js" data-app="acme-billing" defer></script>
+</body>
+</html>

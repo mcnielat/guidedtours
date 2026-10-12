@@ -1,0 +1,521 @@
+{
+  "app": {
+    "key": "doctor-reviews",
+    "name": "CarePulse Reviews (doctor rating demo)",
+    "chooserTitle": "Getting started with CarePulse",
+    "chooserSubtitle": "Learn how to find a doctor you can trust, or how to share your own experience.",
+    "accentColor": "#4f46e5",
+    "hostUrl": "/demo/doctor-reviews.html"
+  },
+  "tours": [
+    {
+      "id": "find-a-doctor",
+      "title": "Finding the right doctor",
+      "description": "Search, filter, compare and read a doctor's reviews.",
+      "version": 1,
+      "autoStart": "firstVisit",
+      "isPublished": true,
+      "steps": [
+        {
+          "page": "/demo/doctor-reviews.html",
+          "badge": "Welcome",
+          "title": "Welcome to CarePulse",
+          "body": "Every rating here comes from a verified appointment. This tour shows you how to find, compare and check a doctor in under a minute.",
+          "before": [
+            {
+              "type": "dispatch",
+              "event": "reviews:reset"
+            }
+          ]
+        },
+        {
+          "target": "#searchBar",
+          "placement": "bottom",
+          "badge": "Search",
+          "title": "Start with what you need",
+          "body": "Search by specialty, condition or name, then narrow by location and insurance. We've typed \"cardiology\" for you.",
+          "before": [
+            {
+              "type": "dispatch",
+              "event": "reviews:reset",
+              "when": {
+                "exists": "#profilePanel"
+              }
+            },
+            {
+              "type": "setValue",
+              "selector": "#qInput",
+              "value": "cardiology"
+            }
+          ]
+        },
+        {
+          "target": "#resultsHead",
+          "placement": "bottom",
+          "badge": "Results",
+          "title": "Your results",
+          "body": "The count updates with every search and filter. Sort by rating, number of reviews or distance.",
+          "before": [
+            {
+              "type": "setValue",
+              "selector": "#qInput",
+              "value": "cardiology"
+            },
+            {
+              "type": "click",
+              "selector": "#searchBtn"
+            }
+          ]
+        },
+        {
+          "target": "#filter-rating",
+          "placement": "right",
+          "badge": "Filters",
+          "title": "Set a minimum rating",
+          "body": "Hide anyone below the rating you're comfortable with. We've picked 4 stars and up.",
+          "before": [
+            {
+              "type": "click",
+              "selector": "#filtersToggle",
+              "when": {
+                "notExists": "#filter-rating"
+              }
+            },
+            {
+              "type": "waitFor",
+              "selector": "#filter-rating"
+            },
+            {
+              "type": "click",
+              "selector": ".pill[data-min=\"4\"]",
+              "when": {
+                "notExists": ".pill.on[data-min=\"4\"]"
+              }
+            }
+          ]
+        },
+        {
+          "target": "#activeFilters",
+          "placement": "bottom",
+          "badge": "Filters",
+          "title": "Active filters",
+          "body": "Everything you've applied shows here as a chip. Press × on a chip to remove that filter.",
+          "before": [
+            {
+              "type": "dispatch",
+              "event": "reviews:close-profile",
+              "when": {
+                "exists": "#profilePanel"
+              }
+            },
+            {
+              "type": "setValue",
+              "selector": "#qInput",
+              "value": "cardiology"
+            },
+            {
+              "type": "click",
+              "selector": "#searchBtn"
+            },
+            {
+              "type": "click",
+              "selector": "#filtersToggle",
+              "when": {
+                "notExists": "#filter-rating"
+              }
+            },
+            {
+              "type": "click",
+              "selector": ".pill[data-min=\"4\"]",
+              "when": {
+                "notExists": ".pill.on[data-min=\"4\"]"
+              }
+            }
+          ]
+        },
+        {
+          "target": "#doc-amara-okafor .doc-rating",
+          "placement": "bottom",
+          "badge": "Ratings",
+          "title": "Rating at a glance",
+          "body": "The average score and how many patients it's based on. A 4.9 from 400 reviews means more than a 5.0 from three.",
+          "before": [
+            {
+              "type": "dispatch",
+              "event": "reviews:close-profile",
+              "when": {
+                "exists": "#profilePanel"
+              }
+            }
+          ]
+        },
+        {
+          "target": "#doc-amara-okafor .compare-check",
+          "placement": "left",
+          "badge": "Compare",
+          "title": "Shortlist to compare",
+          "body": "Tick Compare on up to three doctors to see them side by side. We've added Dr. Okafor.",
+          "before": [
+            {
+              "type": "dispatch",
+              "event": "reviews:close-profile",
+              "when": {
+                "exists": "#profilePanel"
+              }
+            },
+            {
+              "type": "click",
+              "selector": "#doc-amara-okafor .compare-box",
+              "when": {
+                "notExists": "#compareTray"
+              }
+            }
+          ]
+        },
+        {
+          "target": "#compareTray",
+          "placement": "top",
+          "badge": "Compare",
+          "title": "Your compare tray",
+          "body": "Your shortlist stays here while you keep browsing. Press Compare once you have two or three.",
+          "before": [
+            {
+              "type": "dispatch",
+              "event": "reviews:close-profile",
+              "when": {
+                "exists": "#profilePanel"
+              }
+            },
+            {
+              "type": "click",
+              "selector": "#doc-amara-okafor .compare-box",
+              "when": {
+                "notExists": "#compareTray"
+              }
+            }
+          ]
+        },
+        {
+          "target": "#scoreSummary",
+          "placement": "left",
+          "badge": "Profile",
+          "title": "The full rating breakdown",
+          "body": "Open a profile to see how the stars are spread. A few 1-star reviews among hundreds of 5s is normal.",
+          "before": [
+            {
+              "type": "navigate",
+              "url": "#doctor/amara-okafor"
+            },
+            {
+              "type": "waitFor",
+              "selector": "#profilePanel"
+            },
+            {
+              "type": "dispatch",
+              "event": "reviews:profile-tab",
+              "detail": {
+                "tab": "reviews"
+              }
+            }
+          ]
+        },
+        {
+          "target": "#subscores",
+          "placement": "left",
+          "badge": "Profile",
+          "title": "What patients rate",
+          "body": "Bedside manner, wait time and how clearly things are explained are rated separately, so you can weigh what matters to you.",
+          "before": [
+            {
+              "type": "navigate",
+              "url": "#doctor/amara-okafor",
+              "when": {
+                "notExists": "#profilePanel"
+              }
+            },
+            {
+              "type": "dispatch",
+              "event": "reviews:profile-tab",
+              "detail": {
+                "tab": "reviews"
+              }
+            }
+          ]
+        },
+        {
+          "target": "#firstReview",
+          "placement": "left",
+          "badge": "Reviews",
+          "title": "Read the reviews",
+          "body": "Mark reviews as helpful to push them up. Practices can reply, but they can never remove a review.",
+          "before": [
+            {
+              "type": "navigate",
+              "url": "#doctor/amara-okafor",
+              "when": {
+                "notExists": "#profilePanel"
+              }
+            },
+            {
+              "type": "dispatch",
+              "event": "reviews:profile-tab",
+              "detail": {
+                "tab": "reviews"
+              }
+            }
+          ]
+        },
+        {
+          "target": "#tab-about",
+          "placement": "left",
+          "badge": "Profile",
+          "title": "Insurance and languages",
+          "body": "The About tab lists accepted insurance, languages and whether video visits are offered.",
+          "before": [
+            {
+              "type": "navigate",
+              "url": "#doctor/amara-okafor",
+              "when": {
+                "notExists": "#profilePanel"
+              }
+            },
+            {
+              "type": "click",
+              "selector": ".ptab[data-ptab=\"about\"]",
+              "when": {
+                "notExists": "#tab-about"
+              }
+            }
+          ]
+        },
+        {
+          "target": "#helpBtn",
+          "placement": "bottom",
+          "badge": "Help",
+          "title": "Guides are always here",
+          "body": "Open Guides to replay this tour, or to learn how to write a review of your own.",
+          "before": [
+            {
+              "type": "dispatch",
+              "event": "reviews:reset"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "write-a-review",
+      "title": "Writing a review",
+      "description": "Field by field through the review form.",
+      "version": 1,
+      "autoStart": "never",
+      "isPublished": true,
+      "finishLabel": "Done",
+      "steps": [
+        {
+          "page": "/demo/doctor-reviews.html",
+          "target": "#doc-sofia-alvarez .write-btn",
+          "placement": "left",
+          "badge": "Reviews",
+          "title": "Review any doctor you've seen",
+          "body": "Use Write review on a search result, or the button at the top of a doctor's profile.",
+          "before": [
+            {
+              "type": "call",
+              "name": "closeReviewForm"
+            },
+            {
+              "type": "dispatch",
+              "event": "reviews:reset"
+            }
+          ]
+        },
+        {
+          "target": "#reviewModal .modal",
+          "placement": "left",
+          "badge": "Reviews",
+          "title": "The review form",
+          "body": "It takes about two minutes. Only the star rating, visit type and review text are required.",
+          "before": [
+            {
+              "type": "call",
+              "name": "openReviewForm",
+              "args": {
+                "doctor": "sofia-alvarez"
+              },
+              "when": {
+                "notExists": "#reviewModal .modal"
+              }
+            },
+            {
+              "type": "waitFor",
+              "selector": "#reviewModal .modal"
+            }
+          ]
+        },
+        {
+          "target": "#field-overall",
+          "placement": "bottom",
+          "badge": "Required",
+          "title": "Overall rating",
+          "body": "Tap a star. We've given this visit 5 stars.",
+          "before": [
+            {
+              "type": "call",
+              "name": "openReviewForm",
+              "args": {
+                "doctor": "sofia-alvarez"
+              },
+              "when": {
+                "notExists": "#reviewModal .modal"
+              }
+            },
+            {
+              "type": "call",
+              "name": "setStars",
+              "args": {
+                "stars": 5
+              }
+            }
+          ]
+        },
+        {
+          "target": "#field-categories",
+          "placement": "bottom",
+          "badge": "Optional",
+          "title": "Rate the details",
+          "body": "These scores feed the bedside manner, wait time and explanation ratings on the profile.",
+          "before": [
+            {
+              "type": "call",
+              "name": "openReviewForm",
+              "args": {
+                "doctor": "sofia-alvarez"
+              },
+              "when": {
+                "notExists": "#reviewModal .modal"
+              }
+            },
+            {
+              "type": "click",
+              "selector": "[data-cat=\"bedside\"] button[data-value=\"Great\"]",
+              "when": {
+                "notExists": "[data-cat=\"bedside\"] button.on"
+              }
+            }
+          ]
+        },
+        {
+          "target": "#field-visit",
+          "placement": "top",
+          "badge": "Required",
+          "title": "Type of visit",
+          "body": "This helps other patients: a first consultation and a follow-up are very different experiences.",
+          "before": [
+            {
+              "type": "call",
+              "name": "openReviewForm",
+              "args": {
+                "doctor": "sofia-alvarez"
+              },
+              "when": {
+                "notExists": "#reviewModal .modal"
+              }
+            },
+            {
+              "type": "setValue",
+              "selector": "#visitType",
+              "value": "Follow-up"
+            }
+          ]
+        },
+        {
+          "target": "#field-text",
+          "placement": "top",
+          "badge": "Required",
+          "title": "Tell your story",
+          "body": "At least 50 characters. Be specific about what went well and what could be better.",
+          "before": [
+            {
+              "type": "call",
+              "name": "openReviewForm",
+              "args": {
+                "doctor": "sofia-alvarez"
+              },
+              "when": {
+                "notExists": "#reviewModal .modal"
+              }
+            },
+            {
+              "type": "setValue",
+              "selector": "#reviewHeadline",
+              "value": "Patient and reassuring"
+            },
+            {
+              "type": "setValue",
+              "selector": "#reviewText",
+              "value": "Dr. Alvarez explained everything to my son in words he understood, and the follow-up call came the next morning."
+            }
+          ]
+        },
+        {
+          "target": "#field-anon",
+          "placement": "top",
+          "badge": "Privacy",
+          "title": "Stay anonymous",
+          "body": "On by default. Your review shows as \"Verified patient\" instead of your name.",
+          "before": [
+            {
+              "type": "call",
+              "name": "openReviewForm",
+              "args": {
+                "doctor": "sofia-alvarez"
+              },
+              "when": {
+                "notExists": "#reviewModal .modal"
+              }
+            }
+          ]
+        },
+        {
+          "target": "#guidelines",
+          "placement": "top",
+          "badge": "Privacy",
+          "title": "Review guidelines",
+          "body": "Keep it to your own experience. Every review is checked against a real appointment before it's published.",
+          "before": [
+            {
+              "type": "call",
+              "name": "openReviewForm",
+              "args": {
+                "doctor": "sofia-alvarez"
+              },
+              "when": {
+                "notExists": "#reviewModal .modal"
+              }
+            }
+          ]
+        },
+        {
+          "target": "#submitReview",
+          "placement": "top",
+          "badge": "Done",
+          "title": "Post it",
+          "body": "Press Post review. It appears on the profile straight away, marked as pending until it's verified.",
+          "before": [
+            {
+              "type": "call",
+              "name": "openReviewForm",
+              "args": {
+                "doctor": "sofia-alvarez"
+              },
+              "when": {
+                "notExists": "#reviewModal .modal"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

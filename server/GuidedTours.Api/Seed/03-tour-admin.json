@@ -1,0 +1,90 @@
+{
+  "app": {
+    "key": "tour-admin",
+    "name": "Guided Tours admin (this portal)",
+    "chooserTitle": "Learn the admin",
+    "accentColor": "#4f46e5",
+    "hostUrl": "/admin/apps"
+  },
+  "tours": [
+    {
+      "id": "admin-basics",
+      "title": "How the admin works",
+      "description": "Create, edit and publish tours without a deploy.",
+      "autoStart": "never",
+      "isPublished": true,
+      "steps": [
+        {
+          "title": "Tours are data",
+          "body": "Every tour you see in your systems is defined here, as config. Edit it, save it, and users get the new version on their next page load. No frontend deploy.",
+          "badge": "Welcome"
+        },
+        {
+          "target": "[data-tour=\"apps-list\"]",
+          "placement": "bottom",
+          "title": "Your systems",
+          "body": "Each system embeds the engine once, with its own key. Tours and progress are kept separate per system.",
+          "before": [{ "type": "navigate", "url": "/admin/apps" }]
+        },
+        {
+          "target": "[data-tour=\"tours-list\"]",
+          "placement": "bottom",
+          "title": "Tours for one system",
+          "body": "An app can have any number of tours: onboarding, what's new, feature deep-dives. Each has its own id and trigger.",
+          "before": [{ "type": "navigate", "url": "/admin/apps/tasky-demo" }]
+        },
+        {
+          "target": "[data-tour=\"publish-toggle\"]",
+          "placement": "left",
+          "padding": 6,
+          "title": "Draft or live",
+          "body": "Only published tours are served to the app. Unpublish to pull a tour instantly.",
+          "before": [{ "type": "navigate", "url": "/admin/apps/tasky-demo" }]
+        },
+        {
+          "target": "[data-tour=\"steps-list\"]",
+          "placement": "right",
+          "title": "Steps, in order",
+          "body": "Drag to reorder. Each step points at one element, from a tiny field to a whole modal.",
+          "before": [{ "type": "navigate", "url": "/admin/apps/tasky-demo/tours/email-walkthrough" }]
+        },
+        {
+          "target": "[data-tour=\"step-target\"]",
+          "placement": "left",
+          "title": "Point at anything",
+          "body": "A CSS selector picks the element to spotlight. Add a Page for multi-page apps and the tour carries on across the page load.",
+          "before": [{ "type": "navigate", "url": "/admin/apps/tasky-demo/tours/email-walkthrough" }]
+        },
+        {
+          "target": "[data-tour=\"step-actions\"]",
+          "placement": "left",
+          "title": "Actions between steps",
+          "body": "Navigate, open a modal or switch a tab before highlighting, so the target is on screen. All declarative: config can't run code.",
+          "before": [{ "type": "navigate", "url": "/admin/apps/tasky-demo/tours/email-walkthrough" }]
+        },
+        {
+          "target": "[data-tour=\"json-tab\"]",
+          "placement": "bottom",
+          "padding": 4,
+          "title": "Or edit the JSON",
+          "body": "The same config as raw JSON, for bulk edits or copying a tour between systems.",
+          "before": [{ "type": "navigate", "url": "/admin/apps/tasky-demo/tours/email-walkthrough" }]
+        },
+        {
+          "target": "[data-tour=\"save-bar\"]",
+          "placement": "top",
+          "title": "Save and it's live",
+          "body": "Saving validates the tour on the server. If it's published, it's live on the next page load.",
+          "before": [{ "type": "navigate", "url": "/admin/apps/tasky-demo/tours/email-walkthrough" }]
+        },
+        {
+          "target": "[data-tour=\"help\"]",
+          "placement": "bottom",
+          "padding": 4,
+          "title": "Replay any time",
+          "body": "This tour runs on the same engine as your systems' tours, inside an Angular app. Start it again from here whenever you like."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,234 @@
+{
+  "app": {
+    "key": "archery-club",
+    "name": "Oakridge Archers (archery club demo)",
+    "chooserTitle": "Welcome to Oakridge Archers",
+    "chooserSubtitle": "New here? Take a quick look around the club site, or let us walk you through booking your first range session.",
+    "accentColor": "#b91c1c",
+    "hostUrl": "/demo/archery.html"
+  },
+  "tours": [
+    {
+      "id": "club-overview",
+      "title": "Club site overview",
+      "description": "Disciplines, events, the leaderboard, membership and your member area.",
+      "version": 1,
+      "autoStart": "firstVisit",
+      "isPublished": true,
+      "steps": [
+        {
+          "page": "/demo/archery.html",
+          "badge": "Welcome",
+          "title": "Welcome to Oakridge Archers",
+          "body": "This short tour shows you around the club website. Use the arrow keys or the buttons, and press Esc to leave at any time.",
+          "before": [{ "type": "dispatch", "event": "club:close-overlays" }]
+        },
+        {
+          "target": "#mainNav",
+          "placement": "bottom",
+          "badge": "Navigation",
+          "title": "Jump to any section",
+          "body": "Every part of the club site is on this one page. These links scroll straight to it.",
+          "timeout": 1500,
+          "onMissing": "center"
+        },
+        {
+          "target": "#rangeStatus",
+          "placement": "top",
+          "badge": "Live",
+          "title": "Range status",
+          "body": "Check whether the range is open, how many lanes are free and the wind before you set off.",
+          "before": [{ "type": "navigate", "url": "#hero" }]
+        },
+        {
+          "target": "#disciplineTabs",
+          "placement": "bottom",
+          "badge": "Disciplines",
+          "title": "Four ways to shoot",
+          "body": "Switch between Target, Field, 3D and Barebow to see the rounds, distances and kit for each.",
+          "before": [{ "type": "navigate", "url": "#disciplines" }]
+        },
+        {
+          "target": "#panel-field",
+          "placement": "top",
+          "badge": "Disciplines",
+          "title": "Field archery",
+          "body": "We opened the Field tab for you. Field archery takes you round the woodland course behind the clubhouse.",
+          "before": [
+            { "type": "click", "selector": ".tab[data-tab=\"field\"]", "when": { "notExists": "#panel-field" } },
+            { "type": "waitFor", "selector": "#panel-field" }
+          ]
+        },
+        {
+          "target": "#event-beginners",
+          "placement": "right",
+          "badge": "Events",
+          "title": "Start with a beginner's course",
+          "body": "Six weeks, all kit provided. Press Register to save your place. The bar shows how many places are left.",
+          "before": [
+            { "type": "dispatch", "event": "club:select-tab", "detail": { "tab": "target" } },
+            { "type": "navigate", "url": "#events" }
+          ]
+        },
+        {
+          "target": "#boardToolbar",
+          "placement": "bottom",
+          "badge": "Leaderboard",
+          "title": "Filter the leaderboard",
+          "body": "Narrow the table by bow type or search for an archer. We've switched it to Compound to show you.",
+          "before": [
+            { "type": "navigate", "url": "#leaderboard" },
+            { "type": "setValue", "selector": "#bowFilter", "value": "Compound" }
+          ]
+        },
+        {
+          "target": "#leaderboardBody tr:first-child",
+          "placement": "bottom",
+          "badge": "Leaderboard",
+          "title": "Top of the board",
+          "body": "The best score this season for the chosen bow, with its number of 10s and the archer's classification."
+        },
+        {
+          "target": "#tier-adult",
+          "placement": "top",
+          "badge": "Membership",
+          "title": "Our most popular membership",
+          "body": "Adult membership gives unlimited range time and the indoor hall in winter. Use the toggle above to compare yearly prices.",
+          "before": [
+            { "type": "setValue", "selector": "#bowFilter", "value": "all" },
+            { "type": "navigate", "url": "#membership" }
+          ]
+        },
+        {
+          "target": "#faq-weather",
+          "placement": "top",
+          "badge": "FAQ",
+          "title": "Questions answered",
+          "body": "Click any question to open it. This one explains what happens to sessions in bad weather.",
+          "before": [
+            { "type": "navigate", "url": "#faq" },
+            { "type": "click", "selector": "#faq-weather summary", "when": { "notExists": "#faq-weather[open]" } }
+          ]
+        },
+        {
+          "target": "#memberDrawer",
+          "placement": "left",
+          "badge": "Members",
+          "title": "Your member area",
+          "body": "Members see their card, last scores and bookings here. Open it any time from Member area at the top.",
+          "before": [
+            { "type": "click", "selector": "#memberLoginBtn", "when": { "notExists": "#memberDrawer.open" } },
+            { "type": "waitFor", "selector": "#memberDrawer.open" },
+            { "type": "delay", "ms": 300 }
+          ]
+        },
+        {
+          "target": "#tourBtn",
+          "placement": "bottom",
+          "badge": "Help",
+          "title": "Replay any time",
+          "body": "Open Site tours to see this tour again, or to learn how to book a range session.",
+          "timeout": 1500,
+          "onMissing": "center",
+          "before": [{ "type": "call", "name": "closeOverlays" }]
+        }
+      ]
+    },
+    {
+      "id": "book-a-session",
+      "title": "Booking a range session",
+      "description": "Field by field through the booking form.",
+      "version": 1,
+      "autoStart": "never",
+      "isPublished": true,
+      "finishLabel": "Got it",
+      "steps": [
+        {
+          "page": "/demo/archery.html",
+          "target": "#bookSessionBtn",
+          "placement": "bottom",
+          "badge": "Booking",
+          "title": "Book from here",
+          "body": "Every booking starts with this button. You can also book from the member area.",
+          "before": [
+            { "type": "dispatch", "event": "club:close-overlays" },
+            { "type": "navigate", "url": "#hero" }
+          ]
+        },
+        {
+          "target": "#bookingModal .modal",
+          "placement": "right",
+          "badge": "Booking",
+          "title": "The booking form",
+          "body": "One short form. We'll go through it field by field.",
+          "before": [
+            { "type": "call", "name": "openBooking", "when": { "notExists": "#bookingModal .modal" } },
+            { "type": "waitFor", "selector": "#bookingModal .modal" }
+          ]
+        },
+        {
+          "target": "#field-name",
+          "placement": "bottom",
+          "badge": "Step 1",
+          "title": "Your name",
+          "body": "Use the name on your membership, or your own name if you're booking a taster.",
+          "before": [
+            { "type": "call", "name": "openBooking", "when": { "notExists": "#bookingModal .modal" } },
+            { "type": "setValue", "selector": "#bkName", "value": "Jordan Ellis" }
+          ]
+        },
+        {
+          "target": "#field-discipline",
+          "placement": "bottom",
+          "badge": "Step 2",
+          "title": "Discipline",
+          "body": "Field and 3D sessions use the woodland course, so they have fewer slots.",
+          "before": [{ "type": "call", "name": "openBooking", "when": { "notExists": "#bookingModal .modal" } }]
+        },
+        {
+          "target": "#field-date",
+          "placement": "bottom",
+          "badge": "Step 3",
+          "title": "Date",
+          "body": "You can book up to four weeks ahead. Tomorrow is filled in for you.",
+          "before": [{ "type": "call", "name": "openBooking", "when": { "notExists": "#bookingModal .modal" } }]
+        },
+        {
+          "target": "#field-slot",
+          "placement": "bottom",
+          "badge": "Step 4",
+          "title": "Time slot",
+          "body": "Sessions last two hours. The 18:00 slot is floodlit.",
+          "before": [{ "type": "call", "name": "openBooking", "when": { "notExists": "#bookingModal .modal" } }]
+        },
+        {
+          "target": "#laneGrid",
+          "placement": "top",
+          "badge": "Step 5",
+          "title": "Pick a lane",
+          "body": "Crossed-out lanes are taken. Click a free one to claim it. We've picked lane 3 for you.",
+          "before": [
+            { "type": "call", "name": "openBooking", "when": { "notExists": "#bookingModal .modal" } },
+            { "type": "click", "selector": ".lane[data-lane=\"3\"]", "when": { "notExists": ".lane.selected" } }
+          ]
+        },
+        {
+          "target": "#field-hire",
+          "placement": "top",
+          "badge": "Step 6",
+          "title": "No kit? Hire it",
+          "body": "Tick this to borrow a bow, arrows, an arm guard and a finger tab for the session.",
+          "before": [{ "type": "call", "name": "openBooking", "when": { "notExists": "#bookingModal .modal" } }]
+        },
+        {
+          "target": "#confirmBooking",
+          "placement": "top",
+          "badge": "Done",
+          "title": "Confirm",
+          "body": "Check the total and press Confirm booking. The booking then appears in your member area.",
+          "before": [{ "type": "call", "name": "openBooking", "when": { "notExists": "#bookingModal .modal" } }]
+        }
+      ]
+    }
+  ]
+}

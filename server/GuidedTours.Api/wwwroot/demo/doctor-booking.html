@@ -1,0 +1,819 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MediSlot Booking (demo system)</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230369a1'/%3E%3Cpath d='M10 5h4v5h5v4h-5v5h-4v-5H5v-4h5z' fill='%23fff'/%3E%3C/svg%3E" />
+  <style>
+    /* Fifth demo system: a doctor booking app. App shell with hash-routed views and a multi-step wizard. */
+    :root {
+      --gt-accent: #0369a1;
+      --brand: #0369a1;
+      --brand-dark: #075985;
+      --brand-soft: #e0f2fe;
+      --ink: #0c1a2b;
+      --muted: #5f7186;
+      --line: #dbe3ec;
+      --bg: #f2f6fa;
+      --card: #fff;
+      --ok: #15803d;
+      --ok-soft: #dcfce7;
+      --warn: #b45309;
+      --danger: #b91c1c;
+      --sidebar: #0c2a43;
+    }
+    * { box-sizing: border-box; }
+    /* Components below set display, which would otherwise beat the [hidden] attribute. */
+    [hidden] { display: none !important; }
+    html, body { height: 100%; }
+    body { margin: 0; font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); }
+    button { font: inherit; cursor: pointer; color: inherit; }
+    input, select, textarea { font: inherit; color: inherit; }
+    h1, h2, h3, h4 { margin: 0; line-height: 1.25; }
+    .muted { color: var(--muted); }
+
+    .btn { border: 1px solid transparent; border-radius: 8px; padding: 9px 16px; font-weight: 600; background: var(--brand); color: #fff; }
+    .btn:hover { background: var(--brand-dark); }
+    .btn:disabled { background: #9fb3c6; cursor: not-allowed; }
+    .btn.secondary { background: #fff; color: var(--ink); border-color: var(--line); }
+    .btn.secondary:hover { background: var(--bg); }
+    .btn.danger { background: var(--danger); }
+    .btn.small { padding: 6px 10px; font-size: 13px; }
+    .icon-btn { background: none; border: 0; font-size: 20px; line-height: 1; color: var(--muted); padding: 6px 8px; border-radius: 8px; position: relative; }
+    .icon-btn:hover { background: var(--bg); }
+
+    /* App shell */
+    .shell { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+    .sidebar { background: var(--sidebar); color: #cfe0ef; display: flex; flex-direction: column; padding: 18px 12px; position: sticky; top: 0; height: 100vh; }
+    .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; color: #fff; padding: 0 8px 20px; }
+    .nav { display: grid; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; color: inherit; text-decoration: none; font-weight: 500; }
+    .nav-item:hover { background: rgba(255,255,255,.06); }
+    .nav-item.active { background: rgba(56,189,248,.16); color: #fff; }
+    .nav-item .ico { width: 20px; text-align: center; }
+    .nav-item .count { margin-left: auto; background: #38bdf8; color: #082f49; font-size: 11px; font-weight: 800; border-radius: 99px; padding: 0 7px; }
+    .clinic-switch { margin-top: auto; background: rgba(255,255,255,.06); border-radius: 10px; padding: 12px; font-size: 13px; }
+    .clinic-switch label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; opacity: .7; margin-bottom: 4px; }
+    .clinic-switch select { width: 100%; background: transparent; border: 0; color: #fff; font-weight: 600; padding: 0; }
+    .clinic-switch option { color: var(--ink); }
+
+    .main { min-width: 0; display: flex; flex-direction: column; }
+    .topbar { height: 60px; background: #fff; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 12px; padding: 0 24px; position: sticky; top: 0; z-index: 30; }
+    .topbar h1 { font-size: 18px; flex: 1; }
+    .badge-dot { position: absolute; top: 2px; right: 2px; background: var(--danger); color: #fff; font-size: 10px; font-weight: 800; border-radius: 99px; min-width: 16px; height: 16px; display: grid; place-items: center; padding: 0 4px; }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; background: #bae6fd; color: var(--brand-dark); display: grid; place-items: center; font-weight: 800; font-size: 13px; border: 0; }
+    .dropdown { position: absolute; top: 54px; right: 16px; width: 340px; max-width: calc(100vw - 32px); background: #fff; border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 12px 32px rgba(12,26,43,.16); z-index: 50; overflow: hidden; }
+    .dropdown-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+    .dropdown-head button { background: none; border: 0; color: var(--brand); font-weight: 600; font-size: 13px; }
+    .notif { display: flex; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); font-size: 13px; }
+    .notif:last-child { border-bottom: 0; }
+    .notif.unread { background: #f0f9ff; }
+    .notif .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--brand); margin-top: 6px; flex: none; }
+    .notif:not(.unread) .dot { background: transparent; }
+    .notif small { display: block; color: var(--muted); }
+
+    .content { padding: 24px; max-width: 1200px; width: 100%; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+
+    /* Booking view */
+    .book-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
+    .stepper { display: flex; padding: 16px 20px; gap: 8px; overflow-x: auto; }
+    .stepper-item { display: flex; align-items: center; gap: 8px; flex: 1; min-width: max-content; color: var(--muted); font-weight: 600; font-size: 13px; background: none; border: 0; padding: 0; }
+    .stepper-item:not(:last-child)::after { content: ""; flex: 1; height: 2px; background: var(--line); min-width: 16px; margin-left: 4px; }
+    .stepper-item .num { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; border: 2px solid var(--line); font-size: 12px; background: #fff; flex: none; }
+    .stepper-item.done .num { background: var(--ok); border-color: var(--ok); color: #fff; }
+    .stepper-item.done:not(:last-child)::after { background: var(--ok); }
+    .stepper-item.current { color: var(--ink); }
+    .stepper-item.current .num { border-color: var(--brand); color: var(--brand); }
+    .stepper-item:disabled { cursor: default; }
+
+    .step-panel { padding: 22px; border-top: 1px solid var(--line); }
+    .step-panel h2 { font-size: 18px; margin-bottom: 4px; }
+    .step-panel > p { margin: 0 0 18px; }
+    .spec-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .spec-card { text-align: left; background: #fff; border: 1.5px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 4px; }
+    .spec-card:hover { border-color: #7dd3fc; }
+    .spec-card.selected { border-color: var(--brand); background: #f0f9ff; box-shadow: inset 0 0 0 1px var(--brand); }
+    .spec-card .emoji { font-size: 22px; }
+    .spec-card small { color: var(--muted); }
+    .field-label { font-weight: 600; font-size: 13px; margin: 18px 0 8px; display: block; }
+    .seg { display: inline-flex; background: var(--bg); border-radius: 10px; padding: 4px; gap: 4px; }
+    .seg button { border: 0; background: none; padding: 8px 14px; border-radius: 8px; font-weight: 600; color: var(--muted); }
+    .seg button.on { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(12,26,43,.12); }
+    .reason-input { width: 100%; border: 1px solid #c4d1de; border-radius: 8px; padding: 9px 11px; }
+
+    .doc-tools { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+    .doc-options { display: grid; gap: 10px; }
+    .doc-option { display: grid; grid-template-columns: 52px 1fr auto; gap: 14px; align-items: center; padding: 14px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; text-align: left; width: 100%; }
+    .doc-option:hover { border-color: #7dd3fc; }
+    .doc-option.selected { border-color: var(--brand); background: #f0f9ff; box-shadow: inset 0 0 0 1px var(--brand); }
+    .doc-av { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 800; }
+    .doc-option b { display: block; font-size: 15px; }
+    .doc-option .next-free { font-size: 12px; font-weight: 700; color: var(--ok); background: var(--ok-soft); border-radius: 99px; padding: 2px 8px; white-space: nowrap; }
+    .doc-option .fee { text-align: right; }
+    .doc-option .fee b { font-size: 16px; }
+
+    .when-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 22px; }
+    .when-grid > * { min-width: 0; }
+    .calendar { border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+    .cal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .cal-head b { font-size: 14px; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+    .cal-grid .dow { font-size: 11px; color: var(--muted); font-weight: 700; padding: 4px 0; }
+    .day { aspect-ratio: 1; border: 0; border-radius: 8px; background: none; font-weight: 600; font-size: 13px; position: relative; }
+    .day:disabled { color: #b8c4d0; cursor: default; }
+    .day.available { background: #f0f9ff; color: var(--brand-dark); }
+    .day.available:hover { background: var(--brand-soft); }
+    .day.available::after { content: ""; position: absolute; bottom: 5px; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--ok); }
+    .day.selected { background: var(--brand) !important; color: #fff !important; }
+    .day.selected::after { background: #fff; }
+    .day.today { box-shadow: inset 0 0 0 1.5px #94a3b8; }
+    .cal-legend { display: flex; gap: 12px; font-size: 12px; color: var(--muted); margin-top: 10px; }
+    .slots-wrap h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 8px; }
+    .slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 6px; margin-bottom: 16px; }
+    .slot { border: 1.5px solid #bae6fd; background: #fff; color: var(--brand-dark); border-radius: 8px; padding: 8px 0; font-weight: 700; font-size: 13px; }
+    .slot:hover:not(:disabled) { background: #f0f9ff; }
+    .slot.booked { border-color: var(--line); color: #b8c4d0; text-decoration: line-through; cursor: not-allowed; }
+    .slot.selected, .slot.selected:hover:not(:disabled) { background: var(--brand); color: #fff; border-color: var(--brand); }
+    .slots-empty { padding: 30px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: 10px; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-grid .full { grid-column: 1 / -1; }
+    .field { display: grid; gap: 6px; }
+    .field label { font-weight: 600; font-size: 13px; }
+    .field input, .field select, .field textarea { border: 1px solid #c4d1de; border-radius: 8px; padding: 9px 11px; background: #fff; width: 100%; }
+    .field input:focus, .field select:focus, .field textarea:focus, .reason-input:focus { outline: 2px solid #7dd3fc; border-color: var(--brand); }
+    .field .err { color: var(--danger); font-size: 12px; }
+    .radio-row { display: flex; gap: 16px; flex-wrap: wrap; }
+    .radio-row label { display: flex; gap: 6px; align-items: center; font-weight: 500; }
+    .field input[type="radio"], .field input[type="checkbox"] { width: auto; }
+    .insurance-card { border: 1px dashed #7dd3fc; background: #f0f9ff; border-radius: 10px; padding: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .check { display: flex; gap: 8px; align-items: flex-start; }
+
+    .review-list { display: grid; gap: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+    .review-row { display: grid; grid-template-columns: 140px 1fr auto; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); align-items: center; }
+    .review-row:last-child { border-bottom: 0; }
+    .review-row span:first-child { color: var(--muted); font-size: 13px; }
+    .link-btn { background: none; border: 0; color: var(--brand); font-weight: 600; font-size: 13px; padding: 0; }
+    .policy { margin-top: 14px; background: #fffbeb; border: 1px solid #fde68a; color: #78350f; border-radius: 10px; padding: 12px 14px; font-size: 13px; }
+
+    .wizard-foot { display: flex; justify-content: space-between; align-items: center; padding: 16px 22px; border-top: 1px solid var(--line); gap: 10px; }
+    .wizard-foot .hint { color: var(--muted); font-size: 13px; flex: 1; text-align: right; }
+
+    .summary { position: sticky; top: 84px; padding: 18px; }
+    .summary h3 { font-size: 15px; margin-bottom: 12px; }
+    .sum-row { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--line); font-size: 13px; }
+    .sum-row .k { width: 76px; color: var(--muted); flex: none; }
+    .sum-row .v { font-weight: 600; }
+    .sum-row .v.empty { color: #b8c4d0; font-weight: 400; }
+    .cost { margin-top: 12px; background: var(--bg); border-radius: 10px; padding: 12px; font-size: 13px; display: grid; gap: 4px; }
+    .cost div { display: flex; justify-content: space-between; }
+    .cost .total { font-weight: 800; font-size: 15px; border-top: 1px solid var(--line); padding-top: 6px; margin-top: 4px; }
+    .help-box { margin-top: 12px; font-size: 13px; color: var(--muted); }
+
+    .success { padding: 40px 22px; text-align: center; border-top: 1px solid var(--line); }
+    .success .tick { width: 64px; height: 64px; border-radius: 50%; background: var(--ok-soft); color: var(--ok); display: grid; place-items: center; font-size: 32px; margin: 0 auto 14px; }
+    .success code { background: var(--bg); padding: 4px 10px; border-radius: 6px; font-size: 16px; font-weight: 800; letter-spacing: .08em; }
+    .success .actions { display: flex; gap: 8px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+
+    /* Appointments view */
+    .appt-tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--line); }
+    .appt-tab { background: none; border: 0; border-bottom: 2px solid transparent; padding: 10px 14px; font-weight: 600; color: var(--muted); }
+    .appt-tab[aria-selected="true"] { color: var(--brand-dark); border-bottom-color: var(--brand); }
+    .appt-list { display: grid; gap: 12px; }
+    .appt { display: grid; grid-template-columns: 76px 1fr auto; gap: 16px; padding: 16px; align-items: center; }
+    .appt-date { text-align: center; background: var(--brand-soft); color: var(--brand-dark); border-radius: 10px; padding: 8px 0; }
+    .appt-date b { display: block; font-size: 24px; line-height: 1.1; }
+    .appt-date small { font-weight: 700; text-transform: uppercase; font-size: 11px; }
+    .appt.past .appt-date { background: var(--bg); color: var(--muted); }
+    .status { font-size: 11px; font-weight: 800; text-transform: uppercase; border-radius: 99px; padding: 2px 8px; letter-spacing: .04em; }
+    .status.confirmed { background: var(--ok-soft); color: var(--ok); }
+    .status.pending { background: #fef3c7; color: var(--warn); }
+    .status.cancelled { background: #fee2e2; color: var(--danger); }
+    .status.completed { background: #e2e8f0; color: #475569; }
+    .appt-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+    .checkin { margin-bottom: 16px; padding: 16px; display: flex; gap: 14px; align-items: center; background: linear-gradient(135deg, #0369a1, #0ea5e9); color: #fff; border: 0; }
+    .checkin .btn { background: #fff; color: var(--brand-dark); }
+    .checkin div { flex: 1; }
+
+    /* Profile view */
+    .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .profile-grid .card { padding: 18px; }
+    .profile-grid dl { display: grid; grid-template-columns: 120px 1fr; gap: 8px; margin: 12px 0 0; }
+    .profile-grid dt { color: var(--muted); }
+    .profile-grid dd { margin: 0; font-weight: 600; }
+    .toggle-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--line); }
+
+    /* Dialog */
+    .dialog-wrap { position: fixed; inset: 0; background: rgba(12,26,43,.5); display: grid; place-items: center; z-index: 80; padding: 16px; }
+    .dialog { background: #fff; border-radius: 14px; width: 100%; max-width: 440px; padding: 22px; display: grid; gap: 14px; }
+    .dialog .radio-col { display: grid; gap: 8px; }
+    .dialog .radio-col label { display: flex; gap: 8px; align-items: center; }
+    .dialog-foot { display: flex; justify-content: flex-end; gap: 8px; }
+
+    .toast { position: fixed; bottom: 20px; right: 20px; background: var(--ink); color: #fff; padding: 12px 16px; border-radius: 10px; z-index: 120; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+
+    @media (max-width: 960px) {
+      .shell { grid-template-columns: 1fr; }
+      .sidebar { position: fixed; top: auto; bottom: 0; left: 0; right: 0; height: auto; flex-direction: row; padding: 6px; z-index: 40; }
+      .logo, .clinic-switch { display: none; }
+      .nav { grid-auto-flow: column; grid-auto-columns: 1fr; width: 100%; }
+      .nav-item { flex-direction: column; gap: 2px; font-size: 11px; padding: 6px; position: relative; }
+      .nav-item .count { position: absolute; top: 2px; right: 50%; margin-right: -22px; }
+      .main { padding-bottom: 72px; }
+      .topbar { padding: 0 14px; }
+      .content { padding: 14px; }
+      .book-grid { grid-template-columns: minmax(0, 1fr); }
+      .summary { position: static; }
+      .spec-grid { grid-template-columns: 1fr 1fr; }
+      .when-grid { grid-template-columns: minmax(0, 1fr); }
+      .form-grid, .insurance-card { grid-template-columns: 1fr; }
+      .doc-option { grid-template-columns: 44px 1fr; }
+      .doc-av { width: 44px; height: 44px; }
+      .doc-option .fee { grid-column: 2; text-align: left; }
+      .review-row { grid-template-columns: 1fr auto; }
+      .review-row span:first-child { grid-column: 1 / -1; }
+      .appt { grid-template-columns: 60px 1fr; }
+      .appt-actions { grid-column: 1 / -1; justify-content: flex-start; }
+      .profile-grid { grid-template-columns: 1fr; }
+      .stepper-item .label { display: none; }
+      .stepper-item.current .label { display: inline; }
+      .toast { left: 14px; right: 14px; bottom: 84px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="logo">
+        <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="#0ea5e9"/><path d="M10 5h4v5h5v4h-5v5h-4v-5H5v-4h5z" fill="#fff"/></svg>
+        MediSlot
+      </div>
+      <nav class="nav" id="mainNav" aria-label="Main">
+        <a class="nav-item" href="#book" data-view="book"><span class="ico">＋</span>Book</a>
+        <a class="nav-item" href="#appointments" data-view="appointments"><span class="ico">📅</span>Appointments<span class="count" id="apptCount">2</span></a>
+        <a class="nav-item" href="#profile" data-view="profile"><span class="ico">👤</span>My details</a>
+      </nav>
+      <div class="clinic-switch" id="clinicSwitch">
+        <label for="clinicSelect">Clinic</label>
+        <select id="clinicSelect">
+          <option value="harbour">Harbour Medical Centre</option>
+          <option value="northgate">Northgate Health Hub</option>
+          <option value="riverside">Riverside Clinic</option>
+        </select>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar" id="topbar">
+        <h1 id="viewTitle">Book an appointment</h1>
+        <button class="btn secondary small" id="helpBtn" data-tour-chooser>Help</button>
+        <button class="icon-btn" id="notifBtn" aria-label="Notifications" aria-expanded="false">🔔<span class="badge-dot" id="notifBadge">2</span></button>
+        <button class="avatar" id="avatarBtn" aria-label="Account">JS</button>
+        <div class="dropdown" id="notifPanel" hidden>
+          <div class="dropdown-head"><b>Notifications</b><button id="markRead" type="button">Mark all as read</button></div>
+          <div class="notif unread"><span class="dot"></span><div>Your appointment with Dr. Imani Brooks is tomorrow at 09:30.<small>2 hours ago</small></div></div>
+          <div class="notif unread"><span class="dot"></span><div>Your lab results from 22 Sep are ready to view.<small>Yesterday</small></div></div>
+          <div class="notif"><span class="dot"></span><div>Dr. Lucas Ferreira replied to your message.<small>3 days ago</small></div></div>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- ===== Book view ===== -->
+        <section id="view-book" data-view-panel="book">
+          <div class="book-grid">
+            <div class="card" id="wizard">
+              <div class="stepper" id="stepper" role="list"></div>
+
+              <div class="step-panel" data-step-panel="1" id="step-1">
+                <h2>What do you need?</h2>
+                <p class="muted">Choose a specialty. Not sure? Pick General practice and your GP will refer you.</p>
+                <div class="spec-grid" id="specGrid"></div>
+                <span class="field-label">Appointment type</span>
+                <div class="seg" id="visitType" role="group" aria-label="Appointment type">
+                  <button type="button" data-visit="in-person" class="on">🏥 In person</button>
+                  <button type="button" data-visit="video">🎥 Video call</button>
+                  <button type="button" data-visit="phone">📞 Phone</button>
+                </div>
+                <label class="field-label" for="reasonInput">Reason for visit (optional)</label>
+                <input class="reason-input" id="reasonInput" placeholder="e.g. Rash on arm for two weeks" maxlength="120" />
+              </div>
+
+              <div class="step-panel" data-step-panel="2" id="step-2" hidden>
+                <h2>Choose a doctor</h2>
+                <p class="muted" id="doctorIntro"></p>
+                <div class="doc-tools">
+                  <div class="seg" id="doctorSort" role="group" aria-label="Sort doctors">
+                    <button type="button" data-sort="soonest" class="on">Soonest</button>
+                    <button type="button" data-sort="rating">Top rated</button>
+                    <button type="button" data-sort="fee">Lowest fee</button>
+                  </div>
+                  <label class="check"><input type="checkbox" id="anyDoctor" /><span>Any available doctor</span></label>
+                </div>
+                <div class="doc-options" id="doctorOptions"></div>
+              </div>
+
+              <div class="step-panel" data-step-panel="3" id="step-3" hidden>
+                <h2>Pick a date and time</h2>
+                <p class="muted" id="whenIntro"></p>
+                <div class="when-grid">
+                  <div class="calendar" id="calendar">
+                    <div class="cal-head">
+                      <button class="icon-btn" id="calPrev" type="button" aria-label="Previous month">‹</button>
+                      <b id="calTitle"></b>
+                      <button class="icon-btn" id="calNext" type="button" aria-label="Next month">›</button>
+                    </div>
+                    <div class="cal-grid" id="calGrid"></div>
+                    <div class="cal-legend"><span>● Available</span><span>Grey = fully booked or closed</span></div>
+                  </div>
+                  <div class="slots-wrap" id="slotsWrap"></div>
+                </div>
+              </div>
+
+              <div class="step-panel" data-step-panel="4" id="step-4" hidden>
+                <h2>Your details</h2>
+                <p class="muted">We share these only with your clinic.</p>
+                <form class="form-grid" id="patientForm" novalidate>
+                  <div class="field" id="field-name"><label for="pName">Full name</label><input id="pName" autocomplete="name" /><span class="err" hidden></span></div>
+                  <div class="field" id="field-dob"><label for="pDob">Date of birth</label><input id="pDob" type="date" /><span class="err" hidden></span></div>
+                  <div class="field" id="field-phone"><label for="pPhone">Mobile</label><input id="pPhone" type="tel" autocomplete="tel" placeholder="07…" /><span class="err" hidden></span></div>
+                  <div class="field" id="field-email"><label for="pEmail">Email</label><input id="pEmail" type="email" autocomplete="email" /><span class="err" hidden></span></div>
+                  <div class="field full" id="field-patient-type">
+                    <label>Have you seen this doctor before?</label>
+                    <div class="radio-row">
+                      <label><input type="radio" name="pType" value="new" checked /> No, first visit</label>
+                      <label><input type="radio" name="pType" value="returning" /> Yes, returning patient</label>
+                    </div>
+                  </div>
+                  <div class="full insurance-card" id="insuranceCard">
+                    <div class="field"><label for="pInsurer">Insurance</label>
+                      <select id="pInsurer">
+                        <option value="">Self-pay (no insurance)</option>
+                        <option value="80">BlueShield (80% covered)</option>
+                        <option value="70">UnitedCare (70% covered)</option>
+                        <option value="100">National Health (fully covered)</option>
+                      </select>
+                    </div>
+                    <div class="field"><label for="pMemberId">Member ID</label><input id="pMemberId" placeholder="e.g. BS-4412-0981" /></div>
+                  </div>
+                  <div class="field full" id="field-notes"><label for="pNotes">Anything the doctor should know?</label><textarea id="pNotes" rows="3" placeholder="Allergies, access needs, medication…"></textarea></div>
+                  <label class="check full" id="field-consent"><input type="checkbox" id="pConsent" /><span>I agree to the clinic's privacy notice and to reminders by text and email.</span></label>
+                </form>
+              </div>
+
+              <div class="step-panel" data-step-panel="5" id="step-5" hidden>
+                <h2>Check and confirm</h2>
+                <p class="muted">Nothing is booked until you press Confirm.</p>
+                <div class="review-list" id="reviewList"></div>
+                <div class="policy" id="cancelPolicy"><b>Cancellation policy:</b> Free cancellation up to 24 hours before. Later cancellations or missed appointments are charged at 50% of the fee.</div>
+              </div>
+
+              <div class="success" id="bookingSuccess" hidden>
+                <div class="tick">✓</div>
+                <h2>You're booked!</h2>
+                <p class="muted" id="successText"></p>
+                <p>Confirmation code <code id="confCode"></code></p>
+                <div class="actions">
+                  <button class="btn secondary" id="addCalendar" type="button">Add to calendar</button>
+                  <a class="btn" href="#appointments" id="viewAppointments" style="text-decoration:none">View my appointments</a>
+                  <button class="btn secondary" id="bookAnother" type="button">Book another</button>
+                </div>
+              </div>
+
+              <div class="wizard-foot" id="wizardFoot">
+                <button class="btn secondary" id="wizBack" type="button">Back</button>
+                <span class="hint" id="wizHint"></span>
+                <button class="btn" id="wizNext" type="button">Continue</button>
+              </div>
+            </div>
+
+            <aside class="card summary" id="summary">
+              <h3>Your appointment</h3>
+              <div id="summaryRows"></div>
+              <div class="cost" id="costBox"></div>
+              <div class="help-box">Need urgent help? Call 111, or 999 in an emergency.</div>
+            </aside>
+          </div>
+        </section>
+
+        <!-- ===== Appointments view ===== -->
+        <section id="view-appointments" data-view-panel="appointments" hidden>
+          <div class="card checkin" id="checkinBanner">
+            <div><b>Tomorrow, 09:30 · Dr. Imani Brooks</b><br /><small>Check in online from 24 hours before to skip the front desk.</small></div>
+            <button class="btn small" id="checkinBtn" type="button">Check in</button>
+          </div>
+          <div class="appt-tabs" role="tablist" id="apptTabs">
+            <button class="appt-tab" role="tab" data-appt-tab="upcoming" aria-selected="true">Upcoming</button>
+            <button class="appt-tab" role="tab" data-appt-tab="past" aria-selected="false">Past</button>
+          </div>
+          <div class="appt-list" id="apptList"></div>
+        </section>
+
+        <!-- ===== Profile view ===== -->
+        <section id="view-profile" data-view-panel="profile" hidden>
+          <div class="profile-grid">
+            <div class="card" id="personalCard"><h3>Personal details</h3>
+              <dl><dt>Name</dt><dd>Jamie Sutton</dd><dt>Date of birth</dt><dd>14 Mar 1988</dd><dt>Mobile</dt><dd>07700 900461</dd><dt>Email</dt><dd>jamie@example.com</dd></dl>
+            </div>
+            <div class="card" id="insuranceSaved"><h3>Insurance</h3>
+              <dl><dt>Provider</dt><dd>BlueShield</dd><dt>Member ID</dt><dd>BS-4412-0981</dd><dt>Coverage</dt><dd>80% of consultation fees</dd></dl>
+            </div>
+            <div class="card" id="reminderPrefs"><h3>Reminders</h3>
+              <label class="toggle-row"><span>Text message 24h before</span><input type="checkbox" checked /></label>
+              <label class="toggle-row"><span>Email 48h before</span><input type="checkbox" checked /></label>
+              <label class="toggle-row"><span>Add to calendar automatically</span><input type="checkbox" /></label>
+            </div>
+            <div class="card" id="dependants"><h3>Family members</h3>
+              <p class="muted">Book for children or people you care for.</p>
+              <button class="btn secondary small" type="button" id="addDependant">+ Add family member</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cancel dialog -->
+  <div class="dialog-wrap" id="cancelDialog" hidden>
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="cancelTitle">
+      <h3 id="cancelTitle">Cancel this appointment?</h3>
+      <p class="muted" id="cancelWhat" style="margin:0"></p>
+      <div class="radio-col" id="cancelReasons">
+        <label><input type="radio" name="cancelReason" value="better" /> I'm feeling better</label>
+        <label><input type="radio" name="cancelReason" value="clash" /> The time no longer works</label>
+        <label><input type="radio" name="cancelReason" value="elsewhere" /> I'm being seen elsewhere</label>
+        <label><input type="radio" name="cancelReason" value="other" /> Other</label>
+      </div>
+      <p class="policy" style="margin:0" id="cancelFee"></p>
+      <div class="dialog-foot">
+        <button class="btn secondary" id="keepAppt" type="button">Keep it</button>
+        <button class="btn danger" id="confirmCancel" type="button">Cancel appointment</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <!-- Not deferred, so window.Tour exists when the page script below registers its actions. -->
+  <script src="/sdk/tour.js" data-app="doctor-booking"></script>
+  <script>
+    (() => {
+      const $ = (s, r = document) => r.querySelector(s);
+      const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+      const el = (tag, props = {}, ...kids) => {
+        const n = document.createElement(tag);
+        for (const [k, v] of Object.entries(props)) {
+          if (v == null || v === false) continue;
+          if (k === "class") n.className = v;
+          else if (k === "dataset") Object.assign(n.dataset, v);
+          else if (k === "style") n.setAttribute("style", v);
+          else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+          else if (v === true) n.setAttribute(k, "");
+          else n.setAttribute(k, v);
+        }
+        for (const k of kids.flat()) if (k != null && k !== false) n.append(k);
+        return n;
+      };
+      let toastTimer;
+      function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => (t.hidden = true), 2800); }
+
+      // ---- Dates (local time) ----
+      const pad = (n) => String(n).padStart(2, "0");
+      const iso = (d) => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+      const parse = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+      const fmtLong = (s) => parse(s).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+      const hash = (s) => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) | 0; return Math.abs(h); };
+
+      // ---- Data (fictional) ----
+      const SPECS = [
+        { id: "gp", name: "General practice", emoji: "🩺", note: "Check-ups, referrals" },
+        { id: "dermatology", name: "Dermatology", emoji: "🧴", note: "Skin, hair, nails" },
+        { id: "cardiology", name: "Cardiology", emoji: "❤️", note: "Heart and blood pressure" },
+        { id: "pediatrics", name: "Pediatrics", emoji: "🧸", note: "Children under 16" },
+        { id: "physio", name: "Physiotherapy", emoji: "🦵", note: "Joints, sports injuries" },
+        { id: "mental", name: "Mental health", emoji: "🧠", note: "Talking therapies" },
+      ];
+      const DOCTORS = [
+        { id: "imani-brooks", name: "Dr. Imani Brooks", spec: "gp", color: "#0369a1", rating: 4.9, fee: 60, langs: "English, French", soon: 1 },
+        { id: "owen-price", name: "Dr. Owen Price", spec: "gp", color: "#0f766e", rating: 4.6, fee: 55, langs: "English, Welsh", soon: 0 },
+        { id: "lucas-ferreira", name: "Dr. Lucas Ferreira", spec: "dermatology", color: "#be185d", rating: 4.8, fee: 95, langs: "English, Portuguese", soon: 2 },
+        { id: "hana-sato", name: "Dr. Hana Sato", spec: "dermatology", color: "#7c3aed", rating: 4.7, fee: 90, langs: "English, Japanese", soon: 4 },
+        { id: "victor-adeyemi", name: "Dr. Victor Adeyemi", spec: "cardiology", color: "#b91c1c", rating: 4.9, fee: 140, langs: "English, Yoruba", soon: 5 },
+        { id: "clara-schmidt", name: "Dr. Clara Schmidt", spec: "cardiology", color: "#a16207", rating: 4.5, fee: 120, langs: "English, German", soon: 3 },
+        { id: "rosa-delgado", name: "Dr. Rosa Delgado", spec: "pediatrics", color: "#ea580c", rating: 5.0, fee: 70, langs: "English, Spanish", soon: 2 },
+        { id: "ben-osei", name: "Ben Osei, MCSP", spec: "physio", color: "#15803d", rating: 4.8, fee: 65, langs: "English", soon: 1 },
+        { id: "anya-kowalski", name: "Dr. Anya Kowalski", spec: "mental", color: "#4338ca", rating: 4.9, fee: 85, langs: "English, Polish", soon: 6 },
+      ];
+      const TIMES = [];
+      for (let h = 8; h < 18; h++) for (const m of [0, 30]) if (h !== 12 && !(h === 13 && m === 0)) TIMES.push(pad(h) + ":" + pad(m));
+
+      function isOpen(dateStr, doc) {
+        const d = parse(dateStr);
+        const offset = Math.round((d - today) / 864e5);
+        if (offset < (doc ? doc.soon : 0) || offset > 45) return false;
+        if (d.getDay() === 0 || d.getDay() === 6) return false;
+        return hash(dateStr + (doc ? doc.id : "")) % 5 !== 0; // some days fully booked
+      }
+      function slotsFor(dateStr, doc) {
+        return TIMES.map((t) => ({ t, booked: hash(dateStr + t + doc.id) % 3 === 0 || (dateStr === iso(today) && Number(t.slice(0, 2)) <= new Date().getHours()) }));
+      }
+      function firstOpenDate(doc) {
+        for (let i = 0; i < 60; i++) { const s = iso(addDays(today, i)); if (isOpen(s, doc) && slotsFor(s, doc).some((x) => !x.booked)) return s; }
+        return null;
+      }
+
+      // ---- Wizard state ----
+      const STEPS = ["Service", "Doctor", "Date & time", "Details", "Confirm"];
+      const blank = () => ({ step: 1, spec: null, visit: "in-person", reason: "", doctor: null, anyDoctor: false, docSort: "soonest", date: null, slot: null, calMonth: new Date(today.getFullYear(), today.getMonth(), 1), done: null });
+      let W = blank();
+      const doctor = () => DOCTORS.find((d) => d.id === W.doctor) || null;
+      const spec = () => SPECS.find((s) => s.id === W.spec) || null;
+
+      function patient() {
+        return { name: $("#pName").value.trim(), dob: $("#pDob").value, phone: $("#pPhone").value.trim(), email: $("#pEmail").value.trim(), insurer: $("#pInsurer").value, member: $("#pMemberId").value.trim(), consent: $("#pConsent").checked };
+      }
+      function patientErrors() {
+        const p = patient(), e = {};
+        if (!p.name) e.name = "Enter your full name.";
+        if (!p.dob) e.dob = "Enter your date of birth.";
+        if (!/^[0-9 +]{10,}$/.test(p.phone)) e.phone = "Enter a mobile number.";
+        if (!/^\S+@\S+\.\S+$/.test(p.email)) e.email = "Enter a valid email.";
+        return e;
+      }
+      function stepValid(n) {
+        if (n === 1) return !!W.spec;
+        if (n === 2) return !!W.doctor;
+        if (n === 3) return !!(W.date && W.slot);
+        if (n === 4) return Object.keys(patientErrors()).length === 0 && $("#pConsent").checked;
+        return true;
+      }
+      const HINTS = { 1: "Choose a specialty to continue", 2: "Choose a doctor to continue", 3: "Pick a date and a time", 4: "Fill in your details and accept the privacy notice" };
+
+      // ---- Render ----
+      function renderStepper() {
+        $("#stepper").replaceChildren(...STEPS.map((label, i) => {
+          const n = i + 1, done = W.done || n < W.step, cur = !W.done && n === W.step;
+          return el("button", { type: "button", role: "listitem", class: "stepper-item" + (done ? " done" : "") + (cur ? " current" : ""), dataset: { stepNav: n }, disabled: W.done || n > W.step,
+            "aria-current": cur ? "step" : null, onclick: () => go(n) }, el("span", { class: "num" }, done ? "✓" : String(n)), el("span", { class: "label" }, label));
+        }));
+      }
+      function renderSpecs() {
+        $("#specGrid").replaceChildren(...SPECS.map((s) => el("button", { type: "button", class: "spec-card" + (W.spec === s.id ? " selected" : ""), dataset: { spec: s.id }, "aria-pressed": String(W.spec === s.id),
+          onclick: () => { if (W.spec !== s.id) { W.spec = s.id; W.doctor = null; W.date = null; W.slot = null; } render(); } },
+          el("span", { class: "emoji" }, s.emoji), el("b", {}, s.name), el("small", {}, s.note))));
+        $$("#visitType button").forEach((b) => b.classList.toggle("on", b.dataset.visit === W.visit));
+      }
+      function renderDoctors() {
+        const s = spec();
+        $("#doctorIntro").textContent = s ? s.name + " at " + $("#clinicSelect").selectedOptions[0].text + ". Times shown are each doctor's next free appointment." : "";
+        $$("#doctorSort button").forEach((b) => b.classList.toggle("on", b.dataset.sort === W.docSort));
+        $("#anyDoctor").checked = W.anyDoctor;
+        const list = DOCTORS.filter((d) => d.spec === W.spec).map((d) => ({ d, first: firstOpenDate(d) }));
+        const by = { soonest: (a, b) => (a.first || "9").localeCompare(b.first || "9"), rating: (a, b) => b.d.rating - a.d.rating, fee: (a, b) => a.d.fee - b.d.fee };
+        list.sort(by[W.docSort]);
+        $("#doctorOptions").replaceChildren(...list.map(({ d, first }) => el("button", { type: "button", class: "doc-option" + (W.doctor === d.id ? " selected" : ""), id: "opt-" + d.id, dataset: { doctor: d.id }, "aria-pressed": String(W.doctor === d.id),
+          onclick: () => { if (W.doctor !== d.id) { W.doctor = d.id; W.date = null; W.slot = null; } W.anyDoctor = false; render(); } },
+          el("span", { class: "doc-av", style: "background:" + d.color }, d.name.replace(/^Dr\. /, "").split(" ").map((p) => p[0]).join("").slice(0, 2)),
+          el("span", {}, el("b", {}, d.name), el("span", { class: "muted" }, "★ " + d.rating.toFixed(1) + " · " + d.langs), el("br"), first ? el("span", { class: "next-free" }, "Next free: " + fmtLong(first)) : el("span", { class: "muted" }, "No availability")),
+          el("span", { class: "fee" }, el("b", {}, "£" + d.fee), el("br"), el("small", { class: "muted" }, W.visit === "in-person" ? "per visit" : "per call")))));
+      }
+      function renderCalendar() {
+        const d = doctor(); if (!d) return;
+        $("#whenIntro").textContent = "Showing free times for " + d.name + ".";
+        const m = W.calMonth;
+        $("#calTitle").textContent = m.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+        $("#calPrev").disabled = m.getFullYear() === today.getFullYear() && m.getMonth() === today.getMonth();
+        const cells = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((x) => el("span", { class: "dow" }, x));
+        const lead = (m.getDay() + 6) % 7;
+        for (let i = 0; i < lead; i++) cells.push(el("span"));
+        const days = new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate();
+        for (let n = 1; n <= days; n++) {
+          const s = iso(new Date(m.getFullYear(), m.getMonth(), n));
+          const open = isOpen(s, d) && slotsFor(s, d).some((x) => !x.booked);
+          cells.push(el("button", { type: "button", class: "day" + (open ? " available" : "") + (W.date === s ? " selected" : "") + (s === iso(today) ? " today" : ""), dataset: { date: s }, disabled: !open,
+            "aria-label": fmtLong(s) + (open ? ", available" : ", unavailable"), onclick: () => { W.date = s; W.slot = null; render(); } }, String(n)));
+        }
+        $("#calGrid").replaceChildren(...cells);
+        const wrap = $("#slotsWrap");
+        if (!W.date) { wrap.replaceChildren(el("div", { class: "slots-empty", id: "slotsEmpty" }, "Pick a highlighted day to see free times.")); return; }
+        const slots = slotsFor(W.date, d);
+        const group = (title, from, to, id) => {
+          const g = slots.filter((x) => x.t >= from && x.t < to);
+          return [el("h4", {}, title), el("div", { class: "slots", id }, g.map((x) => el("button", { type: "button", class: "slot" + (x.booked ? " booked" : "") + (W.slot === x.t ? " selected" : ""), dataset: { time: x.t }, disabled: x.booked,
+            "aria-label": x.t + (x.booked ? " (booked)" : ""), onclick: () => { W.slot = x.t; render(); } }, x.t)))];
+        };
+        wrap.replaceChildren(el("div", { id: "slotGroups" }, el("h4", { style: "font-size:14px;text-transform:none;letter-spacing:0;color:var(--ink)" }, fmtLong(W.date)), group("Morning", "00:00", "12:00", "slotsAm"), group("Afternoon", "12:00", "24:00", "slotsPm")));
+      }
+      function renderReview() {
+        const d = doctor(), s = spec(), p = patient();
+        const row = (k, v, stepN) => el("div", { class: "review-row" }, el("span", {}, k), el("b", {}, v), el("button", { type: "button", class: "link-btn", onclick: () => go(stepN) }, "Change"));
+        $("#reviewList").replaceChildren(
+          row("Service", (s ? s.name : "–") + " · " + visitLabel(), 1),
+          row("Doctor", d ? d.name : "–", 2),
+          row("When", W.date ? fmtLong(W.date) + " at " + W.slot : "–", 3),
+          row("Patient", p.name || "–", 4),
+          row("Insurance", $("#pInsurer").value ? $("#pInsurer").selectedOptions[0].text : "Self-pay", 4));
+      }
+      const visitLabel = () => ({ "in-person": "In person", video: "Video call", phone: "Phone" })[W.visit];
+      function renderSummary() {
+        const d = doctor(), s = spec();
+        const row = (k, v) => el("div", { class: "sum-row" }, el("span", { class: "k" }, k), el("span", { class: "v" + (v ? "" : " empty") }, v || "Not chosen"));
+        $("#summaryRows").replaceChildren(
+          row("Service", s && s.name + " · " + visitLabel()),
+          row("Doctor", d && d.name),
+          row("Date", W.date && fmtLong(W.date)),
+          row("Time", W.slot),
+          row("Clinic", W.visit === "in-person" ? $("#clinicSelect").selectedOptions[0].text : "Online"));
+        const fee = d ? d.fee : 0, cover = Number($("#pInsurer").value || 0), insurer = Math.round(fee * cover / 100);
+        $("#costBox").replaceChildren(
+          el("div", {}, el("span", {}, "Consultation fee"), el("span", {}, d ? "£" + fee : "–")),
+          el("div", {}, el("span", {}, "Insurance pays"), el("span", {}, d ? "−£" + insurer : "–")),
+          el("div", { class: "total" }, el("span", {}, "You pay"), el("span", { id: "youPay" }, d ? "£" + (fee - insurer) : "–")));
+      }
+      function render() {
+        renderStepper();
+        $$("[data-step-panel]").forEach((p) => (p.hidden = !!W.done || Number(p.dataset.stepPanel) !== W.step));
+        $("#bookingSuccess").hidden = !W.done;
+        $("#wizardFoot").hidden = !!W.done;
+        if (W.step === 1) renderSpecs();
+        if (W.step === 2) renderDoctors();
+        if (W.step === 3) renderCalendar();
+        if (W.step === 5) renderReview();
+        renderSummary();
+        $("#wizBack").style.visibility = W.step === 1 ? "hidden" : "visible";
+        $("#wizNext").textContent = W.step === 5 ? "Confirm appointment" : "Continue";
+        // The details step stays pressable so a click can show which fields need fixing.
+        $("#wizNext").disabled = W.step !== 4 && !stepValid(W.step);
+        $("#wizHint").textContent = stepValid(W.step) ? "" : HINTS[W.step] || "";
+      }
+      function go(n) {
+        if (n < 1 || n > 5) return;
+        for (let i = 1; i < n; i++) if (!stepValid(i)) { n = i; break; }
+        W.step = n; W.done = null;
+        if (n === 3) { const focus = W.date || firstOpenDate(doctor()); if (focus) W.calMonth = new Date(parse(focus).getFullYear(), parse(focus).getMonth(), 1); }
+        render();
+      }
+
+      // ---- Wizard events ----
+      $$("#visitType button").forEach((b) => b.addEventListener("click", () => { W.visit = b.dataset.visit; render(); }));
+      $("#reasonInput").addEventListener("input", (e) => (W.reason = e.target.value));
+      $$("#doctorSort button").forEach((b) => b.addEventListener("click", () => { W.docSort = b.dataset.sort; render(); }));
+      $("#anyDoctor").addEventListener("change", (e) => {
+        W.anyDoctor = e.target.checked;
+        if (W.anyDoctor) { const best = DOCTORS.filter((d) => d.spec === W.spec).map((d) => ({ d, f: firstOpenDate(d) })).filter((x) => x.f).sort((a, b) => a.f.localeCompare(b.f))[0]; if (best) { W.doctor = best.d.id; W.date = null; W.slot = null; } }
+        render();
+      });
+      $("#calPrev").addEventListener("click", () => { W.calMonth = new Date(W.calMonth.getFullYear(), W.calMonth.getMonth() - 1, 1); render(); });
+      $("#calNext").addEventListener("click", () => { W.calMonth = new Date(W.calMonth.getFullYear(), W.calMonth.getMonth() + 1, 1); render(); });
+      $("#patientForm").addEventListener("input", render);
+      $("#patientForm").addEventListener("change", render);
+      $("#clinicSelect").addEventListener("change", () => { render(); toast("Clinic changed to " + $("#clinicSelect").selectedOptions[0].text); });
+      $("#wizBack").addEventListener("click", () => go(W.step - 1));
+      $("#wizNext").addEventListener("click", () => {
+        if (W.step === 4) {
+          const errs = patientErrors();
+          ["name", "dob", "phone", "email"].forEach((k) => { const box = $("#field-" + k + " .err"); box.textContent = errs[k] || ""; box.hidden = !errs[k]; });
+          if (!Object.keys(errs).length && !$("#pConsent").checked) toast("Please accept the privacy notice to continue.");
+        }
+        if (!stepValid(W.step)) return;
+        if (W.step < 5) return go(W.step + 1);
+        confirmBooking();
+      });
+
+      // ---- Appointments ----
+      const appts = [
+        { id: "a1", doctor: "imani-brooks", date: iso(addDays(today, 1)), time: "09:30", visit: "in-person", status: "confirmed" },
+        { id: "a2", doctor: "lucas-ferreira", date: iso(addDays(today, 12)), time: "14:00", visit: "video", status: "pending" },
+        { id: "p1", doctor: "owen-price", date: iso(addDays(today, -20)), time: "11:00", visit: "in-person", status: "completed" },
+        { id: "p2", doctor: "ben-osei", date: iso(addDays(today, -41)), time: "16:30", visit: "in-person", status: "completed" },
+      ];
+      let apptTab = "upcoming", cancelling = null;
+      function renderAppts() {
+        const up = appts.filter((a) => a.date >= iso(today) && a.status !== "cancelled" && a.status !== "completed");
+        $("#apptCount").textContent = up.length; $("#apptCount").hidden = !up.length;
+        $$(".appt-tab").forEach((t) => t.setAttribute("aria-selected", String(t.dataset.apptTab === apptTab)));
+        const list = appts.filter((a) => apptTab === "upcoming" ? a.date >= iso(today) : a.date < iso(today)).sort((a, b) => apptTab === "upcoming" ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date));
+        $("#apptList").replaceChildren(...list.map((a) => {
+          const d = DOCTORS.find((x) => x.id === a.doctor), dt = parse(a.date), past = apptTab === "past";
+          return el("article", { class: "card appt" + (past ? " past" : ""), id: "appt-" + a.id, dataset: { appt: a.id } },
+            el("div", { class: "appt-date" }, el("small", {}, dt.toLocaleDateString("en-GB", { month: "short" })), el("b", {}, String(dt.getDate())), el("small", {}, dt.toLocaleDateString("en-GB", { weekday: "short" }))),
+            el("div", {}, el("div", { style: "display:flex;gap:8px;align-items:center;flex-wrap:wrap" }, el("b", { style: "font-size:15px" }, d.name), el("span", { class: "status " + a.status }, a.status)),
+              el("div", { class: "muted" }, SPECS.find((s) => s.id === d.spec).name + " · " + a.time + " · " + ({ "in-person": "In person", video: "Video call", phone: "Phone" })[a.visit])),
+            el("div", { class: "appt-actions" }, past
+              ? [el("button", { class: "btn secondary small", type: "button", onclick: () => toast("Visit summary opened (demo).") }, "Visit summary"), el("button", { class: "btn small rebook-btn", type: "button", onclick: () => rebook(a) }, "Book again")]
+              : a.status === "cancelled" ? [el("span", { class: "muted" }, "Cancelled")]
+              : [a.visit === "video" ? el("button", { class: "btn small join-btn", type: "button", onclick: () => toast("The video room opens 10 minutes before.") }, "Join call") : null,
+                 el("button", { class: "btn secondary small reschedule-btn", type: "button", onclick: () => reschedule(a) }, "Reschedule"),
+                 el("button", { class: "btn secondary small cancel-btn", type: "button", onclick: () => openCancel(a.id) }, "Cancel")]));
+        }));
+      }
+      $$(".appt-tab").forEach((t) => t.addEventListener("click", () => { apptTab = t.dataset.apptTab; renderAppts(); }));
+      $("#checkinBtn").addEventListener("click", () => { toast("You're checked in. Take a seat when you arrive."); $("#checkinBtn").textContent = "Checked in ✓"; $("#checkinBtn").disabled = true; });
+
+      function openCancel(id) {
+        cancelling = appts.find((a) => a.id === id); if (!cancelling) return;
+        const d = DOCTORS.find((x) => x.id === cancelling.doctor);
+        $("#cancelWhat").textContent = d.name + " · " + fmtLong(cancelling.date) + " at " + cancelling.time;
+        const late = cancelling.date <= iso(addDays(today, 1));
+        $("#cancelFee").textContent = late ? "This is within 24 hours, so a late cancellation fee of £" + d.fee / 2 + " applies." : "Free to cancel: it's more than 24 hours away.";
+        $$('input[name="cancelReason"]').forEach((r) => (r.checked = false));
+        $("#cancelDialog").hidden = false;
+      }
+      function closeCancel() { $("#cancelDialog").hidden = true; cancelling = null; }
+      $("#keepAppt").addEventListener("click", closeCancel);
+      $("#cancelDialog").addEventListener("click", (e) => { if (e.target.id === "cancelDialog") closeCancel(); });
+      $("#confirmCancel").addEventListener("click", () => {
+        if (!$('input[name="cancelReason"]:checked')) { toast("Choose a reason first."); return; }
+        cancelling.status = "cancelled"; closeCancel(); renderAppts(); toast("Appointment cancelled.");
+      });
+      function reschedule(a) {
+        const d = DOCTORS.find((x) => x.id === a.doctor);
+        W = blank(); W.spec = d.spec; W.doctor = d.id; W.visit = a.visit;
+        location.hash = "#book"; go(3); toast("Pick a new time with " + d.name + ".");
+      }
+      function rebook(a) {
+        const d = DOCTORS.find((x) => x.id === a.doctor);
+        W = blank(); W.spec = d.spec; W.doctor = d.id;
+        location.hash = "#book"; go(3);
+      }
+      function confirmBooking() {
+        const d = doctor();
+        const code = "MS-" + (hash(W.date + W.slot + d.id) % 900000 + 100000);
+        appts.push({ id: "n" + appts.length, doctor: d.id, date: W.date, time: W.slot, visit: W.visit, status: "confirmed" });
+        W.done = code;
+        $("#confCode").textContent = code;
+        $("#successText").textContent = d.name + ", " + fmtLong(W.date) + " at " + W.slot + ". We've sent the details to " + patient().email + ".";
+        renderAppts(); render();
+      }
+      $("#bookAnother").addEventListener("click", () => { W = blank(); render(); });
+      $("#addCalendar").addEventListener("click", () => toast("Calendar file downloaded (demo)."));
+
+      // ---- Notifications ----
+      function setNotif(open) { $("#notifPanel").hidden = !open; $("#notifBtn").setAttribute("aria-expanded", String(open)); }
+      $("#notifBtn").addEventListener("click", (e) => { e.stopPropagation(); setNotif($("#notifPanel").hidden); });
+      $("#notifPanel").addEventListener("click", (e) => e.stopPropagation());
+      document.addEventListener("click", (e) => { if (!e.target.closest("[data-guided-tour]")) setNotif(false); });
+      $("#markRead").addEventListener("click", () => { $$(".notif.unread").forEach((n) => n.classList.remove("unread")); $("#notifBadge").hidden = true; });
+      $("#avatarBtn").addEventListener("click", () => { location.hash = "#profile"; });
+      $("#addDependant").addEventListener("click", () => toast("Family members are coming soon."));
+
+      // ---- Views (hash routed) ----
+      const TITLES = { book: "Book an appointment", appointments: "My appointments", profile: "My details" };
+      let currentView = null;
+      function route() {
+        const v = (location.hash.slice(1).split("/")[0]) || "book";
+        const view = TITLES[v] ? v : "book";
+        if (view === currentView) return; // only react to real view changes, so dialogs opened right after survive the hashchange
+        currentView = view;
+        $$("[data-view-panel]").forEach((p) => (p.hidden = p.dataset.viewPanel !== view));
+        $$(".nav-item").forEach((a) => a.classList.toggle("active", a.dataset.view === view));
+        $("#viewTitle").textContent = TITLES[view];
+        setNotif(false); closeCancel();
+        if (view === "appointments") renderAppts();
+        if (view === "book") render();
+      }
+      window.addEventListener("hashchange", route);
+      window.addEventListener("popstate", route);
+      document.addEventListener("keydown", (e) => { if (e.key === "Escape") { setNotif(false); closeCancel(); } });
+
+      // ---- Hooks for tours ----
+      // "dispatch": put the app into a known state.
+      document.addEventListener("booking:reset", () => {
+        W = blank();
+        $("#patientForm").reset(); $$("#patientForm .err").forEach((x) => (x.hidden = true));
+        $("#reasonInput").value = "";
+        closeCancel(); setNotif(false);
+        render();
+      });
+      document.addEventListener("booking:notifications", (e) => setNotif(!(e.detail && e.detail.open === false)));
+      // "call": registered handlers only. wizardStep fills in anything earlier steps need, so a tour step can be entered from either direction.
+      if (window.Tour && window.Tour.registerAction) {
+        window.Tour.registerAction("wizardStep", (args) => {
+          const n = Number(args && args.step) || 1;
+          if (location.hash !== "#book" && location.hash !== "") { location.hash = "#book"; route(); }
+          if (n > 1 && !W.spec) W.spec = (args && args.spec) || "gp";
+          if (n > 2 && !W.doctor) W.doctor = DOCTORS.find((d) => d.spec === W.spec).id;
+          if (n > 3 && !(W.date && W.slot)) { W.date = firstOpenDate(doctor()); W.slot = slotsFor(W.date, doctor()).find((x) => !x.booked).t; }
+          if (n > 4 && !stepValid(4)) {
+            const fill = { pName: "Jamie Sutton", pDob: "1988-03-14", pPhone: "07700 900461", pEmail: "jamie@example.com" };
+            for (const [id, v] of Object.entries(fill)) if (!$("#" + id).value) $("#" + id).value = v;
+            $("#pConsent").checked = true;
+          }
+          go(n);
+        });
+        window.Tour.registerAction("openCancelDialog", (args) => {
+          if (location.hash !== "#appointments") { location.hash = "#appointments"; route(); }
+          openCancel((args && args.id) || "a2");
+        });
+        window.Tour.registerAction("closeDialogs", () => { closeCancel(); setNotif(false); });
+      }
+
+      renderAppts();
+      route();
+    })();
+  </script>
+</body>
+</html>

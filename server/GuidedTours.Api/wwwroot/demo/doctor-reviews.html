@@ -1,0 +1,750 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CarePulse Reviews (demo system)</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%234f46e5'/%3E%3Cpath d='M12 18s-6-3.6-6-8a3.5 3.5 0 0 1 6-2.4A3.5 3.5 0 0 1 18 10c0 4.4-6 8-6 8z' fill='%23fff'/%3E%3C/svg%3E" />
+  <style>
+    /* Fourth demo system: a doctor rating and review platform. Content is rendered from JS data. */
+    :root {
+      --gt-accent: #4f46e5;
+      --brand: #4f46e5;
+      --brand-dark: #3730a3;
+      --brand-soft: #eef2ff;
+      --star: #f59e0b;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --bg: #f8fafc;
+      --card: #fff;
+      --ok: #059669;
+    }
+    * { box-sizing: border-box; }
+    /* Components below set display, which would otherwise beat the [hidden] attribute. */
+    [hidden] { display: none !important; }
+    body { margin: 0; font: 14px/1.5 "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--ink); }
+    button { font: inherit; cursor: pointer; }
+    input, select, textarea { font: inherit; color: inherit; }
+    h1, h2, h3, h4 { margin: 0; line-height: 1.25; }
+    .muted { color: var(--muted); }
+
+    .btn { border: 1px solid transparent; border-radius: 8px; padding: 9px 14px; font-weight: 600; background: var(--brand); color: #fff; }
+    .btn:hover { background: var(--brand-dark); }
+    .btn.secondary { background: #fff; color: var(--ink); border-color: var(--line); }
+    .btn.secondary:hover { background: var(--bg); }
+    .btn.small { padding: 6px 10px; font-size: 13px; }
+    .icon-btn { background: none; border: 0; font-size: 22px; line-height: 1; color: var(--muted); padding: 4px 8px; border-radius: 6px; }
+    .icon-btn:hover { background: var(--bg); }
+
+    /* Top bar */
+    .topbar { background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 40; }
+    .topbar-inner { max-width: 1240px; margin: 0 auto; padding: 0 20px; height: 60px; display: flex; align-items: center; gap: 20px; }
+    .logo { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 17px; color: var(--brand-dark); text-decoration: none; }
+    .top-links { display: flex; gap: 4px; flex: 1; }
+    .top-links a { padding: 6px 10px; border-radius: 6px; color: var(--muted); text-decoration: none; font-weight: 500; }
+    .top-links a.active, .top-links a:hover { color: var(--ink); background: var(--bg); }
+    .top-actions { display: flex; gap: 8px; align-items: center; margin-left: auto; }
+    .user-chip { display: flex; align-items: center; gap: 8px; padding: 4px 10px 4px 4px; border: 1px solid var(--line); border-radius: 99px; background: #fff; }
+    .user-chip .av { width: 28px; height: 28px; border-radius: 50%; background: #c7d2fe; color: var(--brand-dark); display: grid; place-items: center; font-weight: 700; font-size: 12px; }
+
+    /* Search hero */
+    .search-hero { background: linear-gradient(135deg, #312e81, #4f46e5 60%, #6366f1); color: #fff; padding: 36px 20px 64px; }
+    .search-hero .inner { max-width: 1240px; margin: 0 auto; }
+    .search-hero h1 { font-size: 30px; margin-bottom: 6px; }
+    .search-hero p { margin: 0 0 20px; opacity: .85; }
+    .search-bar { display: grid; grid-template-columns: 1.4fr 1fr 1fr auto; background: #fff; border-radius: 12px; padding: 6px; gap: 6px; box-shadow: 0 10px 30px rgba(15,23,42,.25); }
+    .search-bar label { display: flex; flex-direction: column; padding: 6px 12px; color: var(--muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; border-right: 1px solid var(--line); }
+    .search-bar label:nth-child(3) { border-right: 0; }
+    .search-bar input, .search-bar select { border: 0; padding: 2px 0; font-size: 15px; color: var(--ink); background: transparent; outline: none; text-transform: none; letter-spacing: 0; font-weight: 500; }
+    .search-bar .btn { padding: 0 24px; border-radius: 8px; }
+    .trust { display: flex; gap: 24px; margin-top: 16px; font-size: 13px; opacity: .9; flex-wrap: wrap; }
+
+    /* Layout */
+    .layout { max-width: 1240px; margin: -36px auto 0; padding: 0 20px 60px; display: grid; grid-template-columns: 260px 1fr; gap: 20px; align-items: start; }
+    .panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+
+    /* Filters */
+    .filters { padding: 18px; position: sticky; top: 76px; }
+    .filters h3 { font-size: 15px; display: flex; justify-content: space-between; align-items: center; }
+    .filters h3 button { background: none; border: 0; color: var(--brand); font-size: 13px; font-weight: 600; }
+    .filter-group { border-top: 1px solid var(--line); padding: 14px 0 4px; margin-top: 14px; }
+    .filter-group h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 8px; }
+    .check { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+    .check span { flex: 1; }
+    .check small { color: var(--muted); }
+    .rating-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+    .pill { border: 1px solid var(--line); background: #fff; border-radius: 99px; padding: 4px 10px; font-size: 13px; font-weight: 600; }
+    .pill.on { background: var(--brand-soft); border-color: var(--brand); color: var(--brand-dark); }
+    input[type="range"] { width: 100%; accent-color: var(--brand); }
+    .switch-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
+    .switch { appearance: none; width: 36px; height: 20px; border-radius: 99px; background: #cbd5e1; position: relative; cursor: pointer; transition: background .15s; }
+    .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: left .15s; }
+    .switch:checked { background: var(--brand); }
+    .switch:checked::after { left: 18px; }
+
+    /* Results */
+    .results-head { padding: 14px 18px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .results-head .count { flex: 1; font-weight: 600; }
+    .results-head select { border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; background: #fff; }
+    .view-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+    .view-toggle button { border: 0; background: #fff; padding: 6px 10px; color: var(--muted); }
+    .view-toggle button.on { background: var(--brand-soft); color: var(--brand-dark); }
+    .active-filters { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 18px 14px; }
+    .active-filters:empty { display: none; }
+    .chip { display: inline-flex; gap: 6px; align-items: center; background: var(--brand-soft); color: var(--brand-dark); border-radius: 99px; padding: 3px 4px 3px 10px; font-size: 12px; font-weight: 600; }
+    .chip button { border: 0; background: none; color: inherit; padding: 0 6px; font-size: 14px; }
+
+    .doctor-list { display: grid; gap: 12px; margin-top: 12px; }
+    .doctor-list.grid { grid-template-columns: repeat(2, 1fr); }
+    .doc-card { padding: 18px; display: grid; grid-template-columns: 72px 1fr auto; gap: 16px; align-items: start; transition: box-shadow .15s, border-color .15s; }
+    .doc-card:hover { border-color: #c7d2fe; box-shadow: 0 4px 16px rgba(79,70,229,.08); }
+    .doctor-list.grid .doc-card { grid-template-columns: 56px 1fr; }
+    .doctor-list.grid .doc-side { grid-column: 1 / -1; flex-direction: row; justify-content: space-between; align-items: center; }
+    .doc-photo { width: 72px; height: 72px; border-radius: 14px; display: grid; place-items: center; font-weight: 800; font-size: 22px; color: #fff; }
+    .doctor-list.grid .doc-photo { width: 56px; height: 56px; font-size: 18px; }
+    .doc-name { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .verified { font-size: 11px; font-weight: 700; color: var(--ok); background: #d1fae5; padding: 1px 6px; border-radius: 4px; }
+    .doc-spec { color: var(--brand-dark); font-weight: 600; font-size: 13px; }
+    .doc-meta { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    .stars { color: var(--star); letter-spacing: 1px; font-size: 15px; white-space: nowrap; }
+    .stars .off { color: #e2e8f0; }
+    .rating-line { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+    .rating-line b { font-size: 15px; }
+    .quote { margin-top: 10px; padding: 10px 12px; background: var(--bg); border-left: 3px solid #c7d2fe; border-radius: 0 8px 8px 0; font-size: 13px; color: #334155; }
+    .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+    .tag { font-size: 12px; padding: 2px 8px; border-radius: 99px; background: #f1f5f9; color: #475569; }
+    .tag.good { background: #d1fae5; color: #065f46; }
+    .doc-side { display: flex; flex-direction: column; gap: 8px; align-items: stretch; min-width: 150px; }
+    .compare-check { display: flex; gap: 6px; align-items: center; font-size: 13px; color: var(--muted); justify-content: center; }
+    .doctor-list.grid .doc-quote, .doctor-list.grid .tags { display: none; }
+
+    .pager { display: flex; justify-content: center; gap: 4px; margin-top: 18px; }
+    .pager button { min-width: 36px; height: 36px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-weight: 600; }
+    .pager button.on { background: var(--brand); color: #fff; border-color: var(--brand); }
+    .no-results { padding: 40px; text-align: center; color: var(--muted); }
+
+    /* Compare tray */
+    .compare-tray { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); background: var(--ink); color: #fff; border-radius: 14px; padding: 10px 12px 10px 18px; display: flex; gap: 12px; align-items: center; z-index: 60; box-shadow: 0 10px 30px rgba(15,23,42,.35); max-width: calc(100% - 32px); }
+    .compare-tray .slots { display: flex; gap: 6px; }
+    .compare-tray .slot { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; font-weight: 700; font-size: 12px; }
+    .compare-tray .slot.empty { border: 1px dashed #475569; }
+
+    /* Profile panel */
+    .scrim { position: fixed; inset: 0; background: rgba(15,23,42,.45); z-index: 70; }
+    .profile { position: fixed; top: 0; right: 0; bottom: 0; width: 560px; max-width: 100%; background: #fff; z-index: 75; display: flex; flex-direction: column; box-shadow: -12px 0 40px rgba(15,23,42,.2); }
+    .profile-head { padding: 20px 22px 0; border-bottom: 1px solid var(--line); }
+    .profile-top { display: flex; gap: 14px; align-items: flex-start; }
+    .profile-top .doc-photo { width: 64px; height: 64px; }
+    .profile-top > div:not(.doc-photo) { flex: 1; }
+    .profile-top .doc-photo { flex: none; }
+    .profile-actions { display: flex; gap: 8px; margin: 14px 0; flex-wrap: wrap; }
+    .ptabs { display: flex; gap: 2px; }
+    .ptab { background: none; border: 0; border-bottom: 2px solid transparent; padding: 10px 12px; font-weight: 600; color: var(--muted); }
+    .ptab[aria-selected="true"] { color: var(--brand-dark); border-bottom-color: var(--brand); }
+    .profile-body { padding: 20px 22px; overflow: auto; flex: 1; }
+    .score-summary { display: grid; grid-template-columns: 130px 1fr; gap: 20px; align-items: center; padding: 16px; background: var(--bg); border-radius: 12px; }
+    .big-score { text-align: center; }
+    .big-score b { font-size: 40px; display: block; line-height: 1; }
+    .bars { display: grid; gap: 4px; }
+    .bar-row { display: grid; grid-template-columns: 34px 1fr 34px; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); }
+    .bar { height: 8px; border-radius: 4px; background: #e2e8f0; overflow: hidden; }
+    .bar span { display: block; height: 100%; background: var(--star); }
+    .subscores { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0; }
+    .subscore { border: 1px solid var(--line); border-radius: 10px; padding: 10px; text-align: center; }
+    .subscore b { display: block; font-size: 20px; }
+    .subscore small { color: var(--muted); }
+    .review-tools { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 18px 0 8px; flex-wrap: wrap; }
+    .review-tools select { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; background: #fff; }
+    .review { border-top: 1px solid var(--line); padding: 14px 0; }
+    .review-head { display: flex; justify-content: space-between; gap: 8px; }
+    .review p { margin: 6px 0 8px; color: #334155; }
+    .review-foot { display: flex; gap: 10px; align-items: center; font-size: 12px; color: var(--muted); }
+    .helpful { border: 1px solid var(--line); background: #fff; border-radius: 99px; padding: 2px 10px; font-size: 12px; }
+    .helpful.on { background: var(--brand-soft); border-color: var(--brand); color: var(--brand-dark); }
+    .reply { margin-top: 8px; background: var(--bg); border-radius: 8px; padding: 8px 10px; font-size: 13px; }
+    .info-list { display: grid; gap: 14px; }
+    .info-list dt { font-size: 12px; text-transform: uppercase; color: var(--muted); letter-spacing: .05em; }
+    .info-list dd { margin: 2px 0 0; }
+    .location { border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+    .map { height: 140px; border-radius: 10px; background: repeating-linear-gradient(45deg, #e0e7ff 0 12px, #eef2ff 12px 24px); display: grid; place-items: center; color: var(--brand-dark); font-weight: 700; margin-bottom: 12px; }
+
+    /* Review modal */
+    .modal-wrap { position: fixed; inset: 0; background: rgba(15,23,42,.55); z-index: 90; display: grid; place-items: center; padding: 16px; }
+    .modal { background: #fff; border-radius: 14px; width: 100%; max-width: 540px; max-height: calc(100vh - 32px); overflow: auto; }
+    .modal-head { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+    .modal form { padding: 18px 20px; display: grid; gap: 16px; }
+    .field { display: grid; gap: 6px; }
+    .field > label, .field > span { font-weight: 600; font-size: 13px; }
+    .field input[type="text"], .field textarea, .field select { border: 1px solid #cbd5e1; border-radius: 8px; padding: 9px 11px; background: #fff; }
+    .field textarea { min-height: 110px; resize: vertical; }
+    .star-input { display: flex; gap: 4px; }
+    .star-input button { background: none; border: 0; font-size: 30px; line-height: 1; color: #cbd5e1; padding: 0 2px; }
+    .star-input button.on { color: var(--star); }
+    .star-label { font-size: 13px; color: var(--muted); margin-left: 8px; align-self: center; }
+    .cat-ratings { display: grid; gap: 8px; }
+    .cat-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; font-size: 13px; }
+    .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+    .seg button { border: 0; background: #fff; padding: 4px 10px; font-size: 12px; font-weight: 600; color: var(--muted); border-left: 1px solid var(--line); }
+    .seg button:first-child { border-left: 0; }
+    .seg button.on { background: var(--brand); color: #fff; }
+    .char-count { font-size: 12px; color: var(--muted); text-align: right; }
+    .guidelines { font-size: 12px; color: var(--muted); background: var(--bg); border-radius: 8px; padding: 10px 12px; }
+    .modal-foot { display: flex; justify-content: flex-end; gap: 8px; }
+    .form-error { color: #b91c1c; font-size: 13px; }
+
+    .toast { position: fixed; top: 72px; right: 20px; background: var(--ink); color: #fff; padding: 12px 16px; border-radius: 10px; z-index: 120; box-shadow: 0 8px 24px rgba(0,0,0,.25); max-width: 320px; }
+
+    @media (max-width: 960px) {
+      .top-links { display: none; }
+      .user-chip span { display: none; }
+      .search-bar { grid-template-columns: 1fr; }
+      .search-bar label { border-right: 0; border-bottom: 1px solid var(--line); }
+      .search-bar .btn { padding: 10px; }
+      .layout { grid-template-columns: 1fr; }
+      .filters { position: static; }
+      .filters-body { display: none; }
+      .filters.open .filters-body { display: block; }
+      .filters-toggle { display: inline-block !important; }
+      .doc-card { grid-template-columns: 56px 1fr; }
+      .doc-photo { width: 56px; height: 56px; font-size: 18px; }
+      .doc-side { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; }
+      .doc-side .btn { flex: 1; }
+      .doctor-list.grid { grid-template-columns: 1fr; }
+      .score-summary { grid-template-columns: 1fr; }
+      .subscores { grid-template-columns: 1fr 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="logo" href="#" id="logo">
+        <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="#4f46e5"/><path d="M12 18s-6-3.6-6-8a3.5 3.5 0 0 1 6-2.4A3.5 3.5 0 0 1 18 10c0 4.4-6 8-6 8z" fill="#fff"/></svg>
+        CarePulse
+      </a>
+      <nav class="top-links" id="topLinks" aria-label="Main">
+        <a href="#" class="active">Find doctors</a>
+        <a href="#">Hospitals</a>
+        <a href="#">Top rated</a>
+        <a href="#">For doctors</a>
+      </nav>
+      <div class="top-actions">
+        <button class="btn secondary small" id="helpBtn" data-tour-chooser>Guides</button>
+        <div class="user-chip" id="userChip"><span class="av">RK</span><span>Riley K.</span></div>
+      </div>
+    </div>
+  </header>
+
+  <section class="search-hero">
+    <div class="inner">
+      <h1>Find a doctor patients trust</h1>
+      <p>Honest ratings from 1.2 million verified patient reviews.</p>
+      <form class="search-bar" id="searchBar">
+        <label>Specialty, condition or name<input id="qInput" type="text" placeholder="e.g. Cardiology, back pain, Dr. Patel" autocomplete="off" /></label>
+        <label>Location<input id="locInput" type="text" value="Springfield" /></label>
+        <label>Insurance
+          <select id="insSelect">
+            <option value="">Any insurance</option>
+            <option>BlueShield</option>
+            <option>Medicare</option>
+            <option>UnitedCare</option>
+            <option>Aetra</option>
+          </select>
+        </label>
+        <button class="btn" id="searchBtn" type="submit">Search</button>
+      </form>
+      <div class="trust"><span>✓ Verified patients only</span><span>✓ Doctors can reply, not delete</span><span>✓ No paid rankings</span></div>
+    </div>
+  </section>
+
+  <div class="layout">
+    <aside class="panel filters" id="filters">
+      <h3>Filters
+        <button type="button" id="clearFilters">Clear all</button>
+      </h3>
+      <button class="btn secondary small filters-toggle" id="filtersToggle" type="button" style="display:none;margin-top:10px">Show filters</button>
+      <div class="filters-body">
+        <div class="filter-group" id="filter-specialty">
+          <h4>Specialty</h4>
+          <div id="specialtyChecks"></div>
+        </div>
+        <div class="filter-group" id="filter-rating">
+          <h4>Minimum rating</h4>
+          <div class="rating-pills" id="ratingPills">
+            <button class="pill on" data-min="0" type="button">Any</button>
+            <button class="pill" data-min="3" type="button">3★+</button>
+            <button class="pill" data-min="4" type="button">4★+</button>
+            <button class="pill" data-min="4.5" type="button">4.5★+</button>
+          </div>
+        </div>
+        <div class="filter-group" id="filter-distance">
+          <h4>Distance: <span id="distanceLabel">25</span> mi</h4>
+          <input type="range" id="distanceRange" min="1" max="50" value="25" aria-label="Maximum distance in miles" />
+        </div>
+        <div class="filter-group" id="filter-options">
+          <h4>Options</h4>
+          <label class="switch-row"><span>Accepting new patients</span><input type="checkbox" class="switch" id="newPatients" /></label>
+          <label class="switch-row"><span>Offers video visits</span><input type="checkbox" class="switch" id="videoVisits" /></label>
+          <label class="switch-row"><span>Verified profile only</span><input type="checkbox" class="switch" id="verifiedOnly" /></label>
+        </div>
+      </div>
+    </aside>
+
+    <main>
+      <div class="panel">
+        <div class="results-head" id="resultsHead">
+          <span class="count" id="resultCount"></span>
+          <label class="muted" for="sortSelect">Sort</label>
+          <select id="sortSelect">
+            <option value="relevance">Most relevant</option>
+            <option value="rating">Highest rated</option>
+            <option value="reviews">Most reviewed</option>
+            <option value="distance">Nearest</option>
+          </select>
+          <div class="view-toggle" id="viewToggle" role="group" aria-label="Layout">
+            <button type="button" data-view="list" class="on" aria-label="List view">☰</button>
+            <button type="button" data-view="grid" aria-label="Grid view">▦</button>
+          </div>
+        </div>
+        <div class="active-filters" id="activeFilters"></div>
+      </div>
+      <div class="doctor-list" id="doctorList"></div>
+      <div class="pager" id="pager"></div>
+    </main>
+  </div>
+
+  <!-- Compare tray -->
+  <div class="compare-tray" id="compareTray" hidden>
+    <span id="compareText">Compare</span>
+    <div class="slots" id="compareSlots"></div>
+    <button class="btn small" id="compareBtn" type="button">Compare</button>
+    <button class="icon-btn" id="compareClear" style="color:#94a3b8" aria-label="Clear comparison">×</button>
+  </div>
+
+  <!-- Doctor profile side panel (opened by #doctor/<id>) -->
+  <div class="scrim" id="profileScrim" hidden></div>
+  <aside class="profile" id="profilePanel" aria-label="Doctor profile" hidden>
+    <div class="profile-head">
+      <div class="profile-top">
+        <div class="doc-photo" id="pPhoto"></div>
+        <div>
+          <div class="doc-name" id="pName"></div>
+          <div class="doc-spec" id="pSpec"></div>
+          <div class="doc-meta" id="pMeta"></div>
+        </div>
+        <button class="icon-btn" id="closeProfile" aria-label="Close profile">×</button>
+      </div>
+      <div class="profile-actions">
+        <button class="btn" id="writeReviewBtn" type="button">Write a review</button>
+        <button class="btn secondary" id="saveDoctorBtn" type="button">♡ Save</button>
+        <button class="btn secondary" id="shareBtn" type="button">Share</button>
+      </div>
+      <div class="ptabs" role="tablist" id="profileTabs">
+        <button class="ptab" role="tab" data-ptab="reviews" aria-selected="true">Reviews</button>
+        <button class="ptab" role="tab" data-ptab="about" aria-selected="false">About</button>
+        <button class="ptab" role="tab" data-ptab="locations" aria-selected="false">Locations</button>
+      </div>
+    </div>
+    <div class="profile-body">
+      <div id="tab-reviews" data-ppanel="reviews">
+        <div class="score-summary" id="scoreSummary">
+          <div class="big-score"><b id="pScore"></b><div class="stars" id="pStars"></div><small class="muted" id="pCount"></small></div>
+          <div class="bars" id="ratingBars"></div>
+        </div>
+        <div class="subscores" id="subscores"></div>
+        <div class="review-tools">
+          <b id="reviewsHeading">Patient reviews</b>
+          <select id="reviewSort" aria-label="Sort reviews">
+            <option value="recent">Most recent</option>
+            <option value="helpful">Most helpful</option>
+            <option value="high">Highest rating</option>
+            <option value="low">Lowest rating</option>
+          </select>
+        </div>
+        <div id="reviewList"></div>
+      </div>
+      <div id="tab-about" data-ppanel="about" hidden>
+        <dl class="info-list" id="aboutInfo"></dl>
+      </div>
+      <div id="tab-locations" data-ppanel="locations" hidden>
+        <div class="map" id="mapBox">Map preview</div>
+        <div id="locationList"></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Write review modal -->
+  <div class="modal-wrap" id="reviewModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="reviewTitle">
+      <div class="modal-head">
+        <div>
+          <h3 id="reviewTitle">Review your visit</h3>
+          <small class="muted" id="reviewFor"></small>
+        </div>
+        <button class="icon-btn" id="closeReview" aria-label="Close">×</button>
+      </div>
+      <form id="reviewForm" novalidate>
+        <div class="field" id="field-overall">
+          <span>Overall rating</span>
+          <div class="star-input" id="starInput" role="radiogroup" aria-label="Overall rating"></div>
+        </div>
+        <div class="field" id="field-categories">
+          <span>Rate the details</span>
+          <div class="cat-ratings" id="catRatings"></div>
+        </div>
+        <div class="field" id="field-visit">
+          <label for="visitType">Type of visit</label>
+          <select id="visitType">
+            <option value="">Choose one</option>
+            <option>First consultation</option>
+            <option>Follow-up</option>
+            <option>Procedure</option>
+            <option>Video visit</option>
+          </select>
+        </div>
+        <div class="field" id="field-title">
+          <label for="reviewHeadline">Headline</label>
+          <input type="text" id="reviewHeadline" maxlength="80" placeholder="Sum up your visit in a few words" />
+        </div>
+        <div class="field" id="field-text">
+          <label for="reviewText">Your review</label>
+          <textarea id="reviewText" maxlength="1000" placeholder="What went well? What could be better?"></textarea>
+          <div class="char-count"><span id="charCount">0</span> / 1000 (at least 50)</div>
+        </div>
+        <label class="check" id="field-anon"><input type="checkbox" id="anonCheck" checked /><span>Post as "Verified patient" instead of my name</span></label>
+        <div class="guidelines" id="guidelines">Keep it about your own experience. Don't include medical details you wouldn't want public. Reviews are checked against a real appointment before they appear.</div>
+        <div class="form-error" id="reviewError" hidden></div>
+        <div class="modal-foot">
+          <button type="button" class="btn secondary" id="cancelReview">Cancel</button>
+          <button type="submit" class="btn" id="submitReview">Post review</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <!-- Not deferred, so window.Tour exists when the page script below registers its actions. -->
+  <script src="/sdk/tour.js" data-app="doctor-reviews"></script>
+  <script>
+    (() => {
+      const $ = (s, r = document) => r.querySelector(s);
+      const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+      const el = (tag, props = {}, ...kids) => {
+        const n = document.createElement(tag);
+        for (const [k, v] of Object.entries(props)) {
+          if (k === "class") n.className = v;
+          else if (k === "dataset") Object.assign(n.dataset, v);
+          else if (k === "style") n.setAttribute("style", v);
+          else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+          else n.setAttribute(k, v);
+        }
+        for (const k of kids.flat()) if (k != null) n.append(k);
+        return n;
+      };
+
+      // ---- Data (fictional) ----
+      const doctors = [
+        { id: "amara-okafor", name: "Dr. Amara Okafor", spec: "Cardiology", color: "#4f46e5", rating: 4.9, reviews: 412, dist: 2.1, newPts: true, video: true, verified: true, years: 18, clinic: "Springfield Heart Centre", ins: ["BlueShield", "Medicare", "UnitedCare"], tags: ["Explains clearly", "On time"], quote: "Took the time to walk me through every test result. Never felt rushed.", bars: [86, 9, 3, 1, 1], sub: [4.9, 4.7, 4.8] },
+        { id: "james-whitfield", name: "Dr. James Whitfield", spec: "Orthopedics", color: "#0891b2", rating: 4.6, reviews: 288, dist: 5.4, newPts: false, video: false, verified: true, years: 22, clinic: "Lakeside Bone & Joint", ins: ["BlueShield", "Aetra"], tags: ["Great surgeon"], quote: "My knee replacement recovery was faster than expected.", bars: [72, 17, 6, 3, 2], sub: [4.5, 4.0, 4.7] },
+        { id: "mei-lin-chen", name: "Dr. Mei-Lin Chen", spec: "Dermatology", color: "#db2777", rating: 4.8, reviews: 351, dist: 3.0, newPts: true, video: true, verified: true, years: 11, clinic: "Clearview Skin Clinic", ins: ["UnitedCare", "Aetra", "Medicare"], tags: ["Friendly staff", "Short wait"], quote: "Finally found someone who listened about my eczema.", bars: [81, 13, 4, 1, 1], sub: [4.9, 4.8, 4.6] },
+        { id: "rahul-desai", name: "Dr. Rahul Desai", spec: "Family Medicine", color: "#059669", rating: 4.4, reviews: 97, dist: 1.2, newPts: true, video: true, verified: false, years: 6, clinic: "Elm Street Family Practice", ins: ["BlueShield", "Medicare", "UnitedCare", "Aetra"], tags: ["Easy to book"], quote: "Easy to book and he remembers my history.", bars: [62, 22, 9, 4, 3], sub: [4.6, 4.1, 4.3] },
+        { id: "sofia-alvarez", name: "Dr. Sofia Alvarez", spec: "Pediatrics", color: "#ea580c", rating: 4.9, reviews: 530, dist: 4.7, newPts: false, video: true, verified: true, years: 15, clinic: "Little Steps Children's Clinic", ins: ["BlueShield", "UnitedCare"], tags: ["Great with kids", "Explains clearly"], quote: "My daughter actually looks forward to her check-ups.", bars: [90, 7, 2, 1, 0], sub: [5.0, 4.6, 4.9] },
+        { id: "henry-novak", name: "Dr. Henry Novak", spec: "Cardiology", color: "#7c3aed", rating: 3.6, reviews: 64, dist: 8.9, newPts: true, video: false, verified: true, years: 30, clinic: "Northside Medical Group", ins: ["Medicare"], tags: ["Long wait"], quote: "Knowledgeable, but the wait was over an hour.", bars: [38, 24, 16, 12, 10], sub: [3.9, 2.8, 3.8] },
+        { id: "grace-mensah", name: "Dr. Grace Mensah", spec: "Neurology", color: "#be123c", rating: 4.7, reviews: 173, dist: 12.5, newPts: true, video: true, verified: true, years: 14, clinic: "Riverbend Neuro Associates", ins: ["Aetra", "UnitedCare"], tags: ["Thorough"], quote: "Diagnosed what two others missed.", bars: [77, 15, 5, 2, 1], sub: [4.8, 4.3, 4.8] },
+        { id: "tom-baxter", name: "Dr. Tom Baxter", spec: "Family Medicine", color: "#0d9488", rating: 4.1, reviews: 45, dist: 18.3, newPts: false, video: false, verified: false, years: 9, clinic: "Hillcrest Health", ins: ["BlueShield"], tags: [], quote: "Solid GP, office could answer the phone faster.", bars: [48, 29, 12, 7, 4], sub: [4.3, 3.6, 4.2] },
+        { id: "nadia-haddad", name: "Dr. Nadia Haddad", spec: "Dermatology", color: "#c026d3", rating: 4.5, reviews: 129, dist: 6.6, newPts: true, video: true, verified: true, years: 8, clinic: "Glow Dermatology", ins: ["UnitedCare", "Medicare"], tags: ["Short wait"], quote: "In and out in 20 minutes with a clear plan.", bars: [68, 20, 7, 3, 2], sub: [4.4, 4.7, 4.4] },
+      ];
+      const reviewSeed = [
+        { who: "Verified patient", stars: 5, date: "2026-09-28", title: "Thorough and kind", text: "Explained my results in plain language and drew a diagram of what was going on. Follow-up call the next day.", helpful: 24, visit: "First consultation" },
+        { who: "Morgan T.", stars: 4, date: "2026-09-14", title: "Great care, busy office", text: "The doctor was excellent. Front desk was a bit overwhelmed and I waited 25 minutes past my slot.", helpful: 11, visit: "Follow-up", reply: "Thank you, Morgan. We've added a second receptionist on Mondays to help with this." },
+        { who: "Verified patient", stars: 5, date: "2026-08-30", title: "Saved me a hospital trip", text: "Fit me in the same day and sorted it with a video visit. Couldn't ask for more.", helpful: 17, visit: "Video visit" },
+        { who: "Dana P.", stars: 2, date: "2026-08-02", title: "Felt rushed", text: "Ten minutes and out the door. The advice was fine but I had more questions I didn't get to ask.", helpful: 6, visit: "Follow-up" },
+      ];
+      const userReviews = {}; // id -> reviews added in this session
+
+      // ---- State ----
+      const state = { q: "", ins: "", specs: new Set(), min: 0, dist: 25, newPts: false, video: false, verified: false, sort: "relevance", view: "list", page: 1, compare: [] };
+      const PER_PAGE = 5;
+      const specialties = [...new Set(doctors.map((d) => d.spec))].sort();
+
+      const starStr = (r) => {
+        const full = Math.round(r);
+        return el("span", { class: "stars", "aria-label": r + " out of 5" }, "★".repeat(full), el("span", { class: "off" }, "★".repeat(5 - full)));
+      };
+      let toastTimer;
+      function toast(msg) {
+        const t = $("#toast"); t.textContent = msg; t.hidden = false;
+        clearTimeout(toastTimer); toastTimer = setTimeout(() => (t.hidden = true), 2600);
+      }
+
+      // ---- Filters ----
+      for (const s of specialties) {
+        const count = doctors.filter((d) => d.spec === s).length;
+        $("#specialtyChecks").append(el("label", { class: "check" },
+          el("input", { type: "checkbox", value: s, class: "spec-check", onchange: (e) => { e.target.checked ? state.specs.add(s) : state.specs.delete(s); state.page = 1; render(); } }),
+          el("span", {}, s), el("small", {}, String(count))));
+      }
+      $$("#ratingPills .pill").forEach((p) => p.addEventListener("click", () => {
+        $$("#ratingPills .pill").forEach((x) => x.classList.toggle("on", x === p));
+        state.min = Number(p.dataset.min); state.page = 1; render();
+      }));
+      $("#distanceRange").addEventListener("input", (e) => { state.dist = Number(e.target.value); $("#distanceLabel").textContent = e.target.value; state.page = 1; render(); });
+      [["newPatients", "newPts"], ["videoVisits", "video"], ["verifiedOnly", "verified"]].forEach(([id, key]) =>
+        $("#" + id).addEventListener("change", (e) => { state[key] = e.target.checked; state.page = 1; render(); }));
+      $("#clearFilters").addEventListener("click", clearFilters);
+      $("#filtersToggle").addEventListener("click", () => {
+        const open = $("#filters").classList.toggle("open");
+        $("#filtersToggle").textContent = open ? "Hide filters" : "Show filters";
+      });
+      function clearFilters() {
+        Object.assign(state, { q: "", ins: "", min: 0, dist: 25, newPts: false, video: false, verified: false, page: 1 });
+        state.specs.clear();
+        $$(".spec-check").forEach((c) => (c.checked = false));
+        $$("#ratingPills .pill").forEach((x) => x.classList.toggle("on", x.dataset.min === "0"));
+        $("#distanceRange").value = 25; $("#distanceLabel").textContent = "25";
+        ["newPatients", "videoVisits", "verifiedOnly"].forEach((id) => ($("#" + id).checked = false));
+        $("#qInput").value = ""; $("#insSelect").value = "";
+        render();
+      }
+
+      $("#searchBar").addEventListener("submit", (e) => {
+        e.preventDefault();
+        state.q = $("#qInput").value.trim().toLowerCase();
+        state.ins = $("#insSelect").value;
+        state.page = 1; render();
+      });
+      $("#sortSelect").addEventListener("change", (e) => { state.sort = e.target.value; render(); });
+      $$("#viewToggle button").forEach((b) => b.addEventListener("click", () => {
+        state.view = b.dataset.view;
+        $$("#viewToggle button").forEach((x) => x.classList.toggle("on", x === b));
+        render();
+      }));
+
+      // ---- Results ----
+      function filtered() {
+        let list = doctors.filter((d) =>
+          (!state.q || (d.name + " " + d.spec + " " + d.clinic).toLowerCase().includes(state.q)) &&
+          (!state.ins || d.ins.includes(state.ins)) &&
+          (!state.specs.size || state.specs.has(d.spec)) &&
+          d.rating >= state.min && d.dist <= state.dist &&
+          (!state.newPts || d.newPts) && (!state.video || d.video) && (!state.verified || d.verified));
+        const by = { rating: (a, b) => b.rating - a.rating, reviews: (a, b) => b.reviews - a.reviews, distance: (a, b) => a.dist - b.dist };
+        if (by[state.sort]) list = [...list].sort(by[state.sort]);
+        return list;
+      }
+
+      function activeChips() {
+        const box = $("#activeFilters"); box.replaceChildren();
+        const chip = (label, clear) => box.append(el("span", { class: "chip" }, label, el("button", { type: "button", "aria-label": "Remove " + label, onclick: () => { clear(); state.page = 1; render(); } }, "×")));
+        if (state.q) chip('"' + state.q + '"', () => { state.q = ""; $("#qInput").value = ""; });
+        if (state.ins) chip(state.ins, () => { state.ins = ""; $("#insSelect").value = ""; });
+        state.specs.forEach((s) => chip(s, () => { state.specs.delete(s); $$(".spec-check").forEach((c) => c.value === s && (c.checked = false)); }));
+        if (state.min) chip(state.min + "★+", () => { state.min = 0; $$("#ratingPills .pill").forEach((x) => x.classList.toggle("on", x.dataset.min === "0")); });
+        if (state.newPts) chip("New patients", () => { state.newPts = false; $("#newPatients").checked = false; });
+        if (state.video) chip("Video visits", () => { state.video = false; $("#videoVisits").checked = false; });
+        if (state.verified) chip("Verified", () => { state.verified = false; $("#verifiedOnly").checked = false; });
+      }
+
+      function card(d) {
+        const inCompare = state.compare.includes(d.id);
+        return el("article", { class: "panel doc-card", id: "doc-" + d.id, dataset: { doctor: d.id } },
+          el("div", { class: "doc-photo", style: "background:" + d.color }, d.name.replace("Dr. ", "").split(/[\s-]/).map((p) => p[0]).slice(0, 2).join("")),
+          el("div", {},
+            el("div", { class: "doc-name" }, d.name, d.verified ? el("span", { class: "verified", title: "Credentials checked by CarePulse" }, "✓ Verified") : null),
+            el("div", { class: "doc-spec" }, d.spec + " · " + d.years + " yrs experience"),
+            el("div", { class: "rating-line doc-rating" }, el("b", {}, d.rating.toFixed(1)), starStr(d.rating), el("a", { href: "#doctor/" + d.id, class: "muted review-count" }, d.reviews + " reviews")),
+            el("div", { class: "doc-meta" }, d.clinic + " · " + d.dist + " mi"),
+            el("div", { class: "quote doc-quote" }, "“" + d.quote + "”"),
+            el("div", { class: "tags" }, d.newPts ? el("span", { class: "tag good" }, "Accepting new patients") : null, d.video ? el("span", { class: "tag" }, "Video visits") : null, d.tags.map((t) => el("span", { class: "tag" }, t)))),
+          el("div", { class: "doc-side" },
+            el("a", { class: "btn view-profile", href: "#doctor/" + d.id, style: "text-align:center;text-decoration:none" }, "View profile"),
+            el("button", { class: "btn secondary write-btn", type: "button", onclick: () => { location.hash = "#doctor/" + d.id; openReview(); } }, "Write review"),
+            el("label", { class: "compare-check" }, el("input", { type: "checkbox", class: "compare-box", ...(inCompare ? { checked: "" } : {}), onchange: () => toggleCompare(d.id) }), "Compare")));
+      }
+
+      function render() {
+        const list = filtered();
+        const pages = Math.max(1, Math.ceil(list.length / PER_PAGE));
+        state.page = Math.min(state.page, pages);
+        $("#resultCount").textContent = list.length + (list.length === 1 ? " doctor" : " doctors") + " near " + ($("#locInput").value || "you");
+        activeChips();
+        const box = $("#doctorList");
+        box.classList.toggle("grid", state.view === "grid");
+        box.replaceChildren();
+        const slice = list.slice((state.page - 1) * PER_PAGE, state.page * PER_PAGE);
+        if (!slice.length) box.append(el("div", { class: "panel no-results" }, "No doctors match these filters. ", el("button", { class: "btn secondary small", type: "button", onclick: clearFilters }, "Clear filters")));
+        slice.forEach((d) => box.append(card(d)));
+        const pager = $("#pager"); pager.replaceChildren();
+        if (pages > 1) for (let p = 1; p <= pages; p++)
+          pager.append(el("button", { type: "button", class: p === state.page ? "on" : "", "aria-label": "Page " + p, onclick: () => { state.page = p; render(); window.scrollTo({ top: $(".layout").offsetTop - 70 }); } }, String(p)));
+      }
+
+      // ---- Compare ----
+      function toggleCompare(id) {
+        const i = state.compare.indexOf(id);
+        if (i >= 0) state.compare.splice(i, 1);
+        else if (state.compare.length >= 3) { toast("You can compare up to 3 doctors."); render(); return; }
+        else state.compare.push(id);
+        renderTray(); render();
+      }
+      function renderTray() {
+        const tray = $("#compareTray");
+        tray.hidden = state.compare.length === 0;
+        $("#compareText").textContent = "Compare (" + state.compare.length + "/3)";
+        const slots = $("#compareSlots"); slots.replaceChildren();
+        for (let i = 0; i < 3; i++) {
+          const d = doctors.find((x) => x.id === state.compare[i]);
+          slots.append(d ? el("div", { class: "slot", style: "background:" + d.color, title: d.name }, d.name.replace("Dr. ", "")[0]) : el("div", { class: "slot empty" }));
+        }
+      }
+      $("#compareClear").addEventListener("click", () => { state.compare = []; renderTray(); render(); });
+      $("#compareBtn").addEventListener("click", () => toast(state.compare.length < 2 ? "Pick at least 2 doctors to compare." : "Comparing " + state.compare.length + " doctors (demo)."));
+
+      // ---- Profile panel (hash routed: #doctor/<id>) ----
+      let current = null;
+      function reviewsFor(d) { return [...(userReviews[d.id] || []), ...reviewSeed]; }
+      function selectPTab(name) {
+        $$(".ptab").forEach((t) => t.setAttribute("aria-selected", String(t.dataset.ptab === name)));
+        $$("[data-ppanel]").forEach((p) => (p.hidden = p.dataset.ppanel !== name));
+      }
+      $$(".ptab").forEach((t) => t.addEventListener("click", () => selectPTab(t.dataset.ptab)));
+
+      function renderReviews() {
+        const d = current; if (!d) return;
+        const list = reviewsFor(d).slice();
+        const s = $("#reviewSort").value;
+        if (s === "helpful") list.sort((a, b) => b.helpful - a.helpful);
+        if (s === "high") list.sort((a, b) => b.stars - a.stars);
+        if (s === "low") list.sort((a, b) => a.stars - b.stars);
+        if (s === "recent") list.sort((a, b) => b.date.localeCompare(a.date));
+        const box = $("#reviewList"); box.replaceChildren();
+        list.forEach((r, i) => box.append(el("div", { class: "review" + (r.mine ? " mine" : ""), id: i === 0 ? "firstReview" : null },
+          el("div", { class: "review-head" }, el("div", {}, starStr(r.stars), " ", el("b", {}, r.title)), el("small", { class: "muted" }, r.date)),
+          el("p", {}, r.text),
+          el("div", { class: "review-foot" }, el("span", {}, r.who + " · " + r.visit),
+            el("button", { class: "helpful", type: "button", onclick: (e) => { const on = e.currentTarget.classList.toggle("on"); r.helpful += on ? 1 : -1; e.currentTarget.textContent = "👍 Helpful (" + r.helpful + ")"; } }, "👍 Helpful (" + r.helpful + ")"),
+            el("button", { class: "helpful", type: "button", onclick: () => toast("Thanks. Our moderators will take a look.") }, "Report")),
+          r.reply ? el("div", { class: "reply" }, el("b", {}, "Reply from the practice: "), r.reply) : null)));
+      }
+      $("#reviewSort").addEventListener("change", renderReviews);
+
+      function openProfile(id) {
+        const d = doctors.find((x) => x.id === id);
+        if (!d) return closeProfile();
+        current = d;
+        const initials = d.name.replace("Dr. ", "").split(/[\s-]/).map((p) => p[0]).slice(0, 2).join("");
+        $("#pPhoto").textContent = initials; $("#pPhoto").style.background = d.color;
+        $("#pName").replaceChildren(d.name, d.verified ? el("span", { class: "verified" }, "✓ Verified") : "");
+        $("#pSpec").textContent = d.spec + " · " + d.years + " years experience";
+        $("#pMeta").textContent = d.clinic + " · " + d.dist + " mi";
+        const extra = (userReviews[d.id] || []).length;
+        $("#pScore").textContent = d.rating.toFixed(1);
+        $("#pStars").replaceChildren(starStr(d.rating));
+        $("#pCount").textContent = (d.reviews + extra) + " reviews";
+        $("#ratingBars").replaceChildren(...d.bars.map((pct, i) => el("div", { class: "bar-row" }, el("span", {}, (5 - i) + " ★"), el("div", { class: "bar" }, el("span", { style: "width:" + pct + "%" })), el("span", {}, pct + "%"))));
+        $("#subscores").replaceChildren(...[["Bedside manner", d.sub[0]], ["Wait time", d.sub[1]], ["Explains clearly", d.sub[2]]].map(([k, v]) => el("div", { class: "subscore" }, el("b", {}, v.toFixed(1)), el("small", {}, k))));
+        $("#aboutInfo").replaceChildren(
+          el("div", {}, el("dt", {}, "Specialty"), el("dd", {}, d.spec)),
+          el("div", {}, el("dt", {}, "Experience"), el("dd", {}, d.years + " years")),
+          el("div", {}, el("dt", {}, "Insurance accepted"), el("dd", {}, d.ins.join(", "))),
+          el("div", {}, el("dt", {}, "Languages"), el("dd", {}, "English" + (d.id.length % 2 ? ", Spanish" : ""))),
+          el("div", {}, el("dt", {}, "Visit types"), el("dd", {}, "In person" + (d.video ? ", Video" : ""))));
+        $("#locationList").replaceChildren(el("div", { class: "location" }, el("b", {}, d.clinic), el("div", { class: "muted" }, "120 Main St, Springfield · " + d.dist + " mi"), el("div", { class: "muted" }, "Mon–Fri 08:00–17:30")));
+        $("#saveDoctorBtn").textContent = "♡ Save";
+        selectPTab("reviews");
+        $("#reviewSort").value = "recent";
+        renderReviews();
+        $("#profilePanel").hidden = false; $("#profileScrim").hidden = false;
+      }
+      function closeProfile() {
+        current = null;
+        $("#profilePanel").hidden = true; $("#profileScrim").hidden = true;
+        closeReview();
+      }
+      function route() {
+        const m = location.hash.match(/^#doctor\/([\w-]+)/);
+        if (m) { if (!current || current.id !== m[1]) openProfile(m[1]); }
+        else if (current) closeProfile();
+      }
+      const leaveProfile = () => { if (location.hash.startsWith("#doctor/")) history.pushState(null, "", location.pathname + location.search); route(); };
+      $("#closeProfile").addEventListener("click", leaveProfile);
+      $("#profileScrim").addEventListener("click", leaveProfile);
+      $("#saveDoctorBtn").addEventListener("click", (e) => { const on = e.currentTarget.textContent.startsWith("♡"); e.currentTarget.textContent = on ? "♥ Saved" : "♡ Save"; });
+      $("#shareBtn").addEventListener("click", () => toast("Profile link copied (demo)."));
+      window.addEventListener("hashchange", route);
+      window.addEventListener("popstate", route);
+
+      // ---- Write review modal ----
+      const STAR_WORDS = ["", "Poor", "Fair", "Good", "Very good", "Excellent"];
+      const CATS = [["bedside", "Bedside manner"], ["wait", "Wait time"], ["explain", "Explains clearly"]];
+      const draft = { stars: 0, cats: {} };
+      function renderStarInput() {
+        const box = $("#starInput"); box.replaceChildren();
+        for (let i = 1; i <= 5; i++)
+          box.append(el("button", { type: "button", class: i <= draft.stars ? "on" : "", role: "radio", "aria-checked": String(i === draft.stars), "aria-label": i + " stars", dataset: { star: i }, onclick: () => { draft.stars = i; renderStarInput(); } }, "★"));
+        box.append(el("span", { class: "star-label" }, draft.stars ? STAR_WORDS[draft.stars] : "Tap a star"));
+      }
+      function renderCats() {
+        $("#catRatings").replaceChildren(...CATS.map(([key, label]) => el("div", { class: "cat-row", dataset: { cat: key } }, el("span", {}, label),
+          el("div", { class: "seg" }, ["Poor", "OK", "Great"].map((v) => el("button", { type: "button", class: draft.cats[key] === v ? "on" : "", dataset: { value: v }, onclick: () => { draft.cats[key] = v; renderCats(); } }, v))))));
+      }
+      function openReview() {
+        if (!current) { const first = doctors[0]; location.hash = "#doctor/" + first.id; route(); }
+        draft.stars = 0; draft.cats = {};
+        $("#reviewForm").reset();
+        $("#charCount").textContent = "0";
+        $("#reviewError").hidden = true;
+        $("#reviewFor").textContent = current ? current.name + " · " + current.spec : "";
+        renderStarInput(); renderCats();
+        $("#reviewModal").hidden = false;
+      }
+      function closeReview() { $("#reviewModal").hidden = true; }
+      $("#writeReviewBtn").addEventListener("click", openReview);
+      $("#closeReview").addEventListener("click", closeReview);
+      $("#cancelReview").addEventListener("click", closeReview);
+      $("#reviewModal").addEventListener("click", (e) => { if (e.target.id === "reviewModal") closeReview(); });
+      $("#reviewText").addEventListener("input", (e) => ($("#charCount").textContent = e.target.value.length));
+      $("#reviewForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const text = $("#reviewText").value.trim();
+        const err = !draft.stars ? "Choose an overall star rating." : !$("#visitType").value ? "Choose the type of visit." : text.length < 50 ? "Your review needs at least 50 characters." : "";
+        if (err) { $("#reviewError").textContent = err; $("#reviewError").hidden = false; return; }
+        (userReviews[current.id] ||= []).unshift({
+          who: $("#anonCheck").checked ? "Verified patient" : "Riley K.", stars: draft.stars, date: new Date().toISOString().slice(0, 10),
+          title: $("#reviewHeadline").value.trim() || STAR_WORDS[draft.stars], text, helpful: 0, visit: $("#visitType").value, mine: true,
+        });
+        closeReview();
+        openProfile(current.id);
+        toast("Thanks! Your review is pending verification.");
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key !== "Escape") return;
+        if (!$("#reviewModal").hidden) closeReview();
+        else if (current) leaveProfile();
+      });
+
+      // ---- Hooks for tours ----
+      // "dispatch": reset the page to a known state, or open a profile tab.
+      document.addEventListener("reviews:reset", () => { closeReview(); leaveProfile(); clearFilters(); state.compare = []; renderTray(); render(); });
+      document.addEventListener("reviews:close-profile", () => leaveProfile());
+      document.addEventListener("reviews:profile-tab", (e) => selectPTab((e.detail && e.detail.tab) || "reviews"));
+      // "call": registered handlers only.
+      if (window.Tour && window.Tour.registerAction) {
+        window.Tour.registerAction("openReviewForm", (args) => {
+          if (args && args.doctor && (!current || current.id !== args.doctor)) { location.hash = "#doctor/" + args.doctor; route(); }
+          if ($("#reviewModal").hidden) openReview();
+        });
+        window.Tour.registerAction("setStars", (args) => { draft.stars = Math.max(1, Math.min(5, Number(args && args.stars) || 5)); renderStarInput(); });
+        window.Tour.registerAction("closeReviewForm", () => closeReview());
+      }
+
+      render();
+      renderTray();
+      route();
+    })();
+  </script>
+</body>
+</html>

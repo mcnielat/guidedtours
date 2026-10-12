@@ -1,0 +1,568 @@
+{
+  "app": {
+    "key": "tasky-demo",
+    "name": "Tasky Lite (demo)",
+    "chooserTitle": "What's new in Tasky",
+    "chooserSubtitle": "Take the quick tour of every new module, or follow one email all the way from inbox to reply, tracking and setup.",
+    "accentColor": "#0f766e",
+    "hostUrl": "/demo/app.html"
+  },
+  "tours": [
+    {
+      "id": "overview",
+      "title": "Overview tour",
+      "description": "A quick spin through every new module and feature.",
+      "version": 1,
+      "autoStart": "firstVisit",
+      "isPublished": true,
+      "steps": [
+        {
+          "page": "/demo/app.html",
+          "title": "Welcome to the new Tasky",
+          "body": "A lot has changed. This 2-minute tour shows you every new module. Use the arrow keys or the buttons below; press Esc to leave at any time.",
+          "badge": "What's new"
+        },
+        {
+          "target": ".nav-item[data-view=\"inbox\"]",
+          "placement": "right",
+          "badge": "Renamed + new",
+          "title": "ADH Inbox",
+          "body": "The inbox is now the ADH Inbox. Every inbound email lands here as a task.",
+          "before": [
+            {
+              "type": "navigate",
+              "url": "#inbox"
+            }
+          ]
+        },
+        {
+          "target": ".filter-bar",
+          "placement": "bottom",
+          "badge": "New",
+          "title": "Filter anything",
+          "body": "Search across tasks and senders, or filter by category and status.",
+          "before": [
+            {
+              "type": "navigate",
+              "url": "#inbox"
+            }
+          ]
+        },
+        {
+          "target": "#ibRows .ib-row",
+          "placement": "bottom",
+          "badge": "New",
+          "title": "Every email is a task",
+          "body": "Each row is one email, already categorised. Click any row to open it.",
+          "before": [
+            {
+              "type": "navigate",
+              "url": "#inbox"
+            }
+          ]
+        },
+        {
+          "target": "#dComms",
+          "placement": "auto",
+          "badge": "New",
+          "title": "One conversation thread",
+          "body": "Every email and message on the ticket, in order, so you never hop between systems to follow a case.",
+          "before": [
+            {
+              "type": "navigate",
+              "url": "#task/e-ref1",
+              "when": {
+                "notExists": "#view-detail"
+              }
+            },
+            {
+              "type": "click",
+              "selector": "#detailTabs [data-dtab=\"comms\"]"
+            }
+          ]
+        },
+        {
+          "target": "#dReplyBox",
+          "placement": "top",
+          "badge": "New",
+          "title": "Reply in place",
+          "body": "Reply, reply-all or forward right here. It goes back out as an email.",
+          "before": [
+            {
+              "type": "navigate",
+              "url": "#task/e-ref1",
+              "when": {
+                "notExists": "#view-detail"
+              }
+            },
+            {
+              "type": "click",
+              "selector": "#detailTabs [data-dtab=\"comms\"]"
+            }
+          ]
+        },
+        {
+          "target": "#dQuickPanel",
+          "placement": "left",
+          "badge": "New",
+          "title": "Quick actions",
+          "body": "A side panel with the case fields: edit them, email the details or attach screenshots without leaving the thread.",
+          "before": [
+            {
+              "type": "navigate",
+              "url": "#task/e-ref1",
+              "when": {
+                "notExists": "#view-detail"
+              }
+            },
+            {
+              "type": "click",
+              "selector": "#dQuickBtn",
+              "when": {
+                "notExists": "#dQuickPanel"
+              }
+            },
+            {
+              "type": "waitFor",
+              "selector": "#dQuickPanel.open"
+            },
+            {
+              "type": "delay",
+              "ms": 280
+            }
+          ]
+        },
+        {
+          "target": "#newTaskModal .modal",
+          "placement": "right",
+          "badge": "New",
+          "title": "Create a task by hand",
+          "body": "Not everything arrives by email. New task opens this form from the inbox.",
+          "before": [
+            {
+              "type": "navigate",
+              "url": "#inbox"
+            },
+            {
+              "type": "click",
+              "selector": "#newTaskBtn",
+              "when": {
+                "notExists": "#newTaskModal"
+              }
+            }
+          ]
+        },
+        {
+          "target": "#ntCategory",
+          "placement": "right",
+          "padding": 4,
+          "badge": "Tip",
+          "title": "Category drives everything",
+          "body": "The category decides which questions the task asks and which module tracks it.",
+          "before": [
+            {
+              "type": "navigate",
+              "url": "#inbox"
+            },
+            {
+              "type": "click",
+              "selector": "#newTaskBtn",
+              "when": {
+                "notExists": "#newTaskModal"
+              }
+            }
+          ]
+        },
+        {
+          "target": "#view-email .email-tabs",
+          "placement": "bottom",
+          "badge": "New module",
+          "title": "Email",
+          "body": "Every message received and sent, in one place. Switch between Incoming and Outgoing.",
+          "before": [
+            {
+              "type": "navigate",
+              "url": "#email"
+            }
+          ]
+        },
+        {
+          "target": "#view-cases .case-row",
+          "placement": "bottom",
+          "badge": "New module",
+          "title": "Medicolegal register",
+          "body": "Each case at a glance, with an inline deadline and status you can change right here.",
+          "before": [
+            {
+              "type": "navigate",
+              "url": "#cases"
+            }
+          ]
+        },
+        {
+          "target": "#reportsKpis",
+          "placement": "bottom",
+          "badge": "Enhanced",
+          "title": "Reports, reworked",
+          "body": "Turnaround, workload and overdue counts at the top of every report.",
+          "before": [
+            {
+              "type": "navigate",
+              "url": "#reports"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "email-walkthrough",
+      "title": "Email process walkthrough",
+      "description": "Follow one email from the inbox to a task, reply, tracking and setup.",
+      "version": 1,
+      "autoStart": "firstVisit",
+      "isPublished": true,
+      "steps": [
+        {
+          "page": "/demo/app.html",
+          "target": ".nav-item[data-view=\"inbox\"]",
+          "placement": "right",
+          "badge": "Inbox",
+          "title": "An email becomes a task",
+          "body": "When an email arrives, Tasky turns it into a task in the ADH Inbox. Let's follow one all the way through.",
+          "before": [
+            {
+              "type": "navigate",
+              "url": "#inbox"
+            }
+          ]
+        },
+        {
+          "target": "#ibRows .ib-row",
+          "placement": "bottom",
+          "badge": "Inbox",
+          "title": "The new task",
+          "body": "Here it is. Tasky has already read the email and assigned a category: this one is Medico-legal.",
+          "before": [
+            {
+              "type": "navigate",
+              "url": "#inbox"
+            }
+          ]
+        },
+        {
+          "target": "#dMeta",
+          "placement": "bottom",
+          "badge": "Task",
+          "title": "The task, in detail",
+          "body": "The Details tab summarises status, priority, category, who it's assigned to, the due date and when it came in.",
+          "before": [
+            {
+              "type": "call",
+              "name": "openTicket",
+              "args": {
+                "id": "e-ref1"
+              },
+              "when": {
+                "notExists": "#view-detail"
+              }
+            },
+            {
+              "type": "click",
+              "selector": "#detailTabs [data-dtab=\"task\"]"
+            }
+          ]
+        },
+        {
+          "target": "[data-act=\"edit\"]",
+          "placement": "bottom",
+          "badge": "Task",
+          "title": "Edit anything",
+          "body": "Use Edit to change the title, category, priority, due date and more.",
+          "before": [
+            {
+              "type": "call",
+              "name": "openTicket",
+              "args": {
+                "id": "e-ref1"
+              },
+              "when": {
+                "notExists": "#view-detail"
+              }
+            },
+            {
+              "type": "click",
+              "selector": "#detailTabs [data-dtab=\"task\"]"
+            }
+          ]
+        },
+        {
+          "target": "#dComms",
+          "placement": "bottom",
+          "badge": "Communication",
+          "title": "The full email",
+          "body": "The Communication tab shows the original email in full, with every reply, in one thread.",
+          "before": [
+            {
+              "type": "call",
+              "name": "openTicket",
+              "args": {
+                "id": "e-ref1"
+              },
+              "when": {
+                "notExists": "#view-detail"
+              }
+            },
+            {
+              "type": "click",
+              "selector": "#detailTabs [data-dtab=\"comms\"]"
+            }
+          ]
+        },
+        {
+          "target": "[data-act=\"pickup\"]",
+          "placement": "top",
+          "badge": "Communication",
+          "title": "Pick up to reply",
+          "body": "Pick up the task to take ownership, then reply right here. It goes back out as an email.",
+          "before": [
+            {
+              "type": "call",
+              "name": "openTicket",
+              "args": {
+                "id": "e-ref1"
+              },
+              "when": {
+                "notExists": "#view-detail"
+              }
+            },
+            {
+              "type": "click",
+              "selector": "#detailTabs [data-dtab=\"comms\"]"
+            }
+          ]
+        },
+        {
+          "target": "#dQuickPanel",
+          "placement": "left",
+          "badge": "Quick actions",
+          "title": "Quick actions",
+          "body": "Opens the questions for this task's category: status, deadline, GP, third party. Fill them in, then email the details.",
+          "before": [
+            {
+              "type": "call",
+              "name": "openTicket",
+              "args": {
+                "id": "e-ref1"
+              },
+              "when": {
+                "notExists": "#view-detail"
+              }
+            },
+            {
+              "type": "click",
+              "selector": "#detailTabs [data-dtab=\"comms\"]"
+            },
+            {
+              "type": "click",
+              "selector": "#dQuickBtn",
+              "when": {
+                "notExists": "#dQuickPanel"
+              }
+            },
+            {
+              "type": "waitFor",
+              "selector": "#dQuickPanel.open"
+            },
+            {
+              "type": "delay",
+              "ms": 280
+            }
+          ]
+        },
+        {
+          "target": ".nav-item[data-view=\"cases\"]",
+          "placement": "right",
+          "badge": "Tracking",
+          "title": "Track it in Medicolegal",
+          "body": "Those category answers feed the Medicolegal module, where you track the progress of every case."
+        },
+        {
+          "target": "#view-cases .cases-bar",
+          "placement": "bottom",
+          "badge": "Tracking",
+          "title": "Find any case",
+          "body": "Search, and filter by site or task type to narrow the register.",
+          "before": [
+            {
+              "type": "navigate",
+              "url": "#cases"
+            }
+          ]
+        },
+        {
+          "target": "#view-cases .case-row",
+          "placement": "bottom",
+          "badge": "Tracking",
+          "title": "Status, deadline and jump back",
+          "body": "Set the deadline and status right in the row, and click a row to jump straight back to that email task.",
+          "before": [
+            {
+              "type": "navigate",
+              "url": "#cases"
+            }
+          ]
+        },
+        {
+          "target": ".nav-item[data-view=\"email\"]",
+          "placement": "right",
+          "badge": "Email register",
+          "title": "The Email module",
+          "body": "Every email, received and sent, is tracked in the Email module."
+        },
+        {
+          "target": "#view-email .email-tabs",
+          "placement": "bottom",
+          "badge": "Email register",
+          "title": "Received and sent",
+          "body": "Switch between Incoming and Outgoing to see what came in and what your team sent back.",
+          "before": [
+            {
+              "type": "navigate",
+              "url": "#email"
+            }
+          ]
+        },
+        {
+          "target": "#view-email .email-bar",
+          "placement": "bottom",
+          "badge": "Email register",
+          "title": "Filter and open",
+          "body": "Filter by ticket or search, then click any email to open its task and read it in context.",
+          "before": [
+            {
+              "type": "navigate",
+              "url": "#email"
+            }
+          ]
+        },
+        {
+          "page": "/demo/app.html",
+          "target": ".nav-item",
+          "targetText": "Settings",
+          "placement": "right",
+          "badge": "Setup",
+          "title": "Set up the fields",
+          "body": "Last stop: Settings, where you decide what questions each category asks. Click Next to head there."
+        },
+        {
+          "page": "/demo/settings.html",
+          "target": "#categoryList",
+          "placement": "right",
+          "badge": "Setup",
+          "title": "Pick a category",
+          "body": "We've moved to the Settings page and the tour carried on. Each category has its own set of questions."
+        },
+        {
+          "page": "/demo/settings.html",
+          "target": "#caseFields",
+          "placement": "left",
+          "badge": "Setup",
+          "title": "Decide the questions",
+          "body": "Add, reorder and require fields. These are exactly what Quick actions asks for on every task in this category."
+        }
+      ]
+    },
+    {
+      "id": "new-task-form",
+      "title": "Creating a task",
+      "description": "Field-by-field help for the New task form.",
+      "version": 1,
+      "autoStart": "never",
+      "showInChooser": false,
+      "finishLabel": "Got it",
+      "isPublished": true,
+      "steps": [
+        {
+          "target": "#newTaskBtn",
+          "placement": "bottom",
+          "title": "Start here",
+          "body": "New task opens the form. We'll open it for you.",
+          "before": [
+            {
+              "type": "navigate",
+              "url": "#inbox"
+            }
+          ]
+        },
+        {
+          "target": "#ntTitle",
+          "placement": "right",
+          "padding": 4,
+          "title": "A clear title",
+          "body": "Who and what, e.g. \"Records request for J. Smith\". It's what people scan for in the inbox.",
+          "before": [
+            {
+              "type": "navigate",
+              "url": "#inbox"
+            },
+            {
+              "type": "click",
+              "selector": "#newTaskBtn",
+              "when": {
+                "notExists": "#newTaskModal"
+              }
+            }
+          ]
+        },
+        {
+          "target": "#ntCategory",
+          "placement": "right",
+          "padding": 4,
+          "title": "Category",
+          "body": "Medico-legal tasks also appear in the Medicolegal register.",
+          "before": [
+            {
+              "type": "click",
+              "selector": "#newTaskBtn",
+              "when": {
+                "notExists": "#newTaskModal"
+              }
+            }
+          ]
+        },
+        {
+          "target": "#ntDue",
+          "placement": "right",
+          "padding": 4,
+          "title": "Due date",
+          "body": "Overdue tasks are flagged in Reports.",
+          "before": [
+            {
+              "type": "click",
+              "selector": "#newTaskBtn",
+              "when": {
+                "notExists": "#newTaskModal"
+              }
+            }
+          ]
+        },
+        {
+          "target": "#newTaskModal button[type=\"submit\"]",
+          "placement": "top",
+          "padding": 4,
+          "title": "Create",
+          "body": "That's it. The task lands in the inbox, assigned and ready to pick up.",
+          "before": [
+            {
+              "type": "click",
+              "selector": "#newTaskBtn",
+              "when": {
+                "notExists": "#newTaskModal"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tasky Lite: Settings (demo host app)</title>
+  <link rel="stylesheet" href="demo.css" />
+</head>
+<body>
+  <header class="top">
+    <span class="logo">Tasky Lite</span>
+    <span class="spacer"></span>
+    <button class="btn whats-new" data-tour-chooser>✨ What's new</button>
+  </header>
+  <div class="shell">
+    <nav class="side" aria-label="Main">
+      <a class="nav-item" href="app.html#inbox">📥 ADH Inbox</a>
+      <a class="nav-item" href="app.html#cases">⚖️ Medicolegal</a>
+      <a class="nav-item" href="app.html#email">✉️ Email</a>
+      <a class="nav-item active" href="settings.html">⚙️ Settings</a>
+    </nav>
+    <main>
+      <h1>Settings</h1>
+      <p class="sub">Decide which questions each category asks.</p>
+      <div class="settings-grid">
+        <div id="categoryList">
+          <button class="cat active" data-cat="ml">Medico-legal</button>
+          <button class="cat" data-cat="ref">Referral</button>
+          <button class="cat" data-cat="res">Results</button>
+        </div>
+        <div class="card" id="caseFields">
+          <div class="detail-head"><h2 style="margin:0;flex:1" id="cfTitle">Medico-legal: case fields</h2><button class="btn primary" id="addFieldBtn">+ Add field</button></div>
+          <div class="qrow"><span class="grow">Status</span><span class="pill">Dropdown</span><label><input type="checkbox" checked /> Required</label></div>
+          <div class="qrow"><span class="grow">Deadline</span><span class="pill">Date</span><label><input type="checkbox" checked /> Required</label></div>
+          <div class="qrow"><span class="grow">GP</span><span class="pill">Person</span><label><input type="checkbox" /> Required</label></div>
+          <div class="qrow"><span class="grow">Third party</span><span class="pill">Text</span><label><input type="checkbox" /> Required</label></div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script>
+    document.getElementById("categoryList").addEventListener("click", (e) => {
+      const b = e.target.closest(".cat"); if (!b) return;
+      document.querySelectorAll(".cat").forEach((c) => c.classList.toggle("active", c === b));
+      document.getElementById("cfTitle").textContent = b.textContent + ": case fields";
+    });
+  </script>
+  <script src="/sdk/tour.js" data-app="tasky-demo" defer></script>
+</body>
+</html>

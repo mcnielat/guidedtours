@@ -1,0 +1,23 @@
+{
+  "app": {
+    "key": "acme-billing",
+    "name": "Acme Billing (second demo system)",
+    "chooserTitle": "Tours",
+    "accentColor": "#c2410c",
+    "hostUrl": "/demo/plain.html"
+  },
+  "tours": [
+    {
+      "id": "billing-basics",
+      "title": "Billing basics",
+      "description": "Three things to know about Acme Billing.",
+      "autoStart": "never",
+      "isPublished": true,
+      "steps": [
+        { "target": "#outstanding", "placement": "bottom", "title": "What you're owed", "body": "Everything invoiced but not yet paid.", "badge": "Dashboard" },
+        { "target": "#overdue", "placement": "bottom", "title": "Overdue", "body": "Past the due date. Chase these first.", "badge": "Dashboard" },
+        { "target": "#invoices", "placement": "top", "title": "Invoices", "body": "Every invoice and its status. This tour lives in the same backend as Tasky's, but runs on a completely different system.", "badge": "Invoices" }
+      ]
+    }
+  ]
+}

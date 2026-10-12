@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tasky Lite (demo host app)</title>
+  <link rel="stylesheet" href="demo.css" />
+</head>
+<body>
+  <header class="top">
+    <span class="logo">Tasky Lite</span>
+    <span class="spacer"></span>
+    <!-- The only tour wiring in this app: two attributes and one script tag. -->
+    <button class="btn ghost" data-tour-start="new-task-form">Help: creating a task</button>
+    <button class="btn whats-new" id="whatsNewBtn" data-tour-chooser>✨ What's new</button>
+  </header>
+
+  <div class="shell">
+    <nav class="side" aria-label="Main">
+      <a class="nav-item" data-view="inbox" href="#inbox">📥 ADH Inbox <span class="count">4</span></a>
+      <a class="nav-item" data-view="cases" href="#cases">⚖️ Medicolegal</a>
+      <a class="nav-item" data-view="email" href="#email">✉️ Email</a>
+      <a class="nav-item" data-view="reports" href="#reports">📊 Reports</a>
+      <a class="nav-item" href="settings.html">⚙️ Settings</a>
+    </nav>
+
+    <main>
+      <!-- Inbox -->
+      <section id="view-inbox" data-view-panel="inbox">
+        <h1>ADH Inbox</h1>
+        <p class="sub">Every inbound email becomes a task here.</p>
+        <div class="bar filter-bar">
+          <input type="search" id="ibSearch" placeholder="Search tasks, senders, references…" />
+          <select id="ibCategory"><option>All categories</option><option>Medico-legal</option><option>Referral</option><option>Results</option></select>
+          <select><option>Any status</option><option>Open</option><option>Picked up</option></select>
+          <span class="spacer" style="flex:1"></span>
+          <button class="btn primary" id="newTaskBtn">+ New task</button>
+        </div>
+        <table>
+          <thead><tr><th>Task</th><th>From</th><th>Category</th><th>Status</th><th>Received</th></tr></thead>
+          <tbody id="ibRows"></tbody>
+        </table>
+      </section>
+
+      <!-- Task detail -->
+      <section id="view-detail" data-view-panel="detail" hidden>
+        <div class="detail-head">
+          <button class="btn" data-go="inbox">← Back</button>
+          <h1 id="dTitle">Task</h1>
+          <button class="btn" data-act="edit">Edit</button>
+          <button class="btn" id="dQuickBtn">⚡ Quick actions</button>
+        </div>
+        <div class="tabs" id="detailTabs">
+          <button class="tab active" data-dtab="task">Details</button>
+          <button class="tab" data-dtab="comms">Communication</button>
+        </div>
+        <div data-dpane="task">
+          <div class="card"><dl class="meta" id="dMeta"></dl></div>
+        </div>
+        <div data-dpane="comms" hidden>
+          <div class="card" id="dComms"><div class="thread" id="dThread"></div></div>
+          <div class="card reply" id="dReplyBox">
+            <textarea placeholder="Write a reply…"></textarea>
+            <div class="row"><button class="btn" data-act="pickup">Pick up</button><button class="btn primary">Send reply</button></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Medicolegal -->
+      <section id="view-cases" data-view-panel="cases" hidden>
+        <h1>Medicolegal</h1>
+        <p class="sub">Track every medico-legal case from request to completion.</p>
+        <div class="bar cases-bar">
+          <input type="search" placeholder="Search by task, reference, third party or GP…" />
+          <select><option>All sites</option><option>North</option><option>South</option></select>
+          <select><option>All task types</option><option>Report request</option><option>Records request</option></select>
+        </div>
+        <table>
+          <thead><tr><th>Task</th><th>Third party</th><th>GP</th><th>Fields</th><th>Deadline</th><th>Status</th></tr></thead>
+          <tbody id="caseRows"></tbody>
+        </table>
+      </section>
+
+      <!-- Email -->
+      <section id="view-email" data-view-panel="email" hidden>
+        <h1>Email</h1>
+        <p class="sub">Every message received and sent, tied to its task.</p>
+        <div class="email-tabs" role="tablist"><button class="active" data-etab="in">Incoming</button><button data-etab="out">Outgoing</button></div>
+        <div class="bar email-bar">
+          <input type="search" placeholder="Search subject, ticket, sender…" />
+          <select><option>Any ticket</option><option>E-REF1</option><option>E-REF2</option></select>
+        </div>
+        <div id="emailRows"></div>
+      </section>
+
+      <!-- Reports -->
+      <section id="view-reports" data-view-panel="reports" hidden>
+        <h1>Reports</h1>
+        <p class="sub">Turnaround, workload and handoffs.</p>
+        <div class="card" id="reportsKpis" style="display:flex;gap:30px">
+          <div><div class="sub">Open tasks</div><strong style="font-size:26px">42</strong></div>
+          <div><div class="sub">Median reply time</div><strong style="font-size:26px">3h 12m</strong></div>
+          <div><div class="sub">Overdue</div><strong style="font-size:26px">5</strong></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Side panel -->
+  <aside class="panel" id="dQuickPanel" aria-label="Quick actions" hidden>
+    <div class="detail-head"><h2 style="margin:0;flex:1">Quick actions</h2><button class="btn ghost" id="qpClose">✕</button></div>
+    <div class="field"><label>Status</label><select><option>Requested</option><option>In progress</option><option>Sent</option></select></div>
+    <div class="field"><label>Deadline</label><input type="date" value="2026-10-30" /></div>
+    <div class="field"><label>GP</label><input value="Dr. Patel" /></div>
+    <div class="field"><label>Third party</label><input value="Smith &amp; Co Lawyers" /></div>
+    <button class="btn primary">Email details</button>
+  </aside>
+
+  <!-- Modal -->
+  <div class="modal-bg" id="newTaskModal" hidden>
+    <form class="modal" role="dialog" aria-labelledby="ntTitleH">
+      <h2 id="ntTitleH">New task</h2>
+      <div class="field"><label for="ntTitle">Title</label><input id="ntTitle" placeholder="e.g. Records request for J. Smith" /></div>
+      <div class="field"><label for="ntCategory">Category</label><select id="ntCategory"><option>Medico-legal</option><option>Referral</option><option>Results</option></select></div>
+      <div class="field"><label for="ntDue">Due date</label><input id="ntDue" type="date" /></div>
+      <div class="field"><label for="ntAssignee">Assign to</label><select id="ntAssignee"><option>Front desk seat</option><option>Practice manager</option></select></div>
+      <div class="row"><button type="button" class="btn" id="ntCancel">Cancel</button><button type="submit" class="btn primary">Create task</button></div>
+    </form>
+  </div>
+
+  <script src="app.js"></script>
+  <!-- The tour engine: config is pulled from the backend at runtime. -->
+  <script src="/sdk/tour.js" data-app="tasky-demo" defer></script>
+</body>
+</html>

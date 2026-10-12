@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Oakridge Archers (demo system)</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='13' fill='%23111'/%3E%3Ccircle cx='14' cy='14' r='8' fill='%23b91c1c'/%3E%3Ccircle cx='14' cy='14' r='4' fill='%23eab308'/%3E%3C/svg%3E" />
+  <style>
+    /* Third demo system: an archery club website. Plain HTML/JS, no framework. */
+    :root {
+      --gt-accent: #b91c1c;
+      --forest: #14532d;
+      --forest-2: #166534;
+      --gold: #eab308;
+      --red: #b91c1c;
+      --ink: #1a2e1f;
+      --muted: #5b6b5f;
+      --line: #dfe6dc;
+      --paper: #f7f8f3;
+      --card: #ffffff;
+    }
+    * { box-sizing: border-box; }
+    /* Components below set display, which would otherwise beat the [hidden] attribute. */
+    [hidden] { display: none !important; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--paper); color: var(--ink); }
+    a { color: inherit; }
+    button { font: inherit; cursor: pointer; }
+    h1, h2, h3 { line-height: 1.2; margin: 0; }
+    h2 { font-size: 26px; margin-bottom: 6px; }
+    .section-sub { color: var(--muted); margin: 0 0 22px; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+    section { padding: 56px 0; scroll-margin-top: 64px; }
+    section + section { border-top: 1px solid var(--line); }
+
+    .btn { border: 0; border-radius: 8px; padding: 10px 16px; font-weight: 600; }
+    .btn-primary { background: var(--red); color: #fff; }
+    .btn-primary:hover { background: #991b1b; }
+    .btn-ghost { background: transparent; color: inherit; border: 1px solid currentColor; }
+    .btn-gold { background: var(--gold); color: #1a1a1a; }
+
+    /* Header */
+    .site-header { position: sticky; top: 0; z-index: 50; background: var(--forest); color: #ecfdf0; }
+    .site-header .wrap { display: flex; align-items: center; gap: 24px; height: 64px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; text-decoration: none; white-space: nowrap; }
+    .main-nav { display: flex; gap: 4px; flex: 1; }
+    .main-nav a { text-decoration: none; padding: 8px 12px; border-radius: 6px; font-size: 14px; opacity: .9; }
+    .main-nav a:hover, .main-nav a.active { background: rgba(255,255,255,.12); opacity: 1; }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+    .header-actions .btn { padding: 8px 12px; font-size: 14px; white-space: nowrap; }
+    .menu-toggle { display: none; background: none; border: 1px solid rgba(255,255,255,.4); color: inherit; border-radius: 6px; padding: 6px 10px; }
+
+    /* Hero */
+    .hero { background: linear-gradient(120deg, rgba(20,83,45,.96), rgba(22,101,52,.85)), repeating-radial-gradient(circle at 85% 50%, #fff 0 18px, #b91c1c 18px 36px, #2563eb 36px 54px, #111 54px 72px); color: #fff; padding: 72px 0 0; border: 0; }
+    .hero-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 40px; align-items: center; }
+    .hero h1 { font-size: 44px; margin-bottom: 14px; }
+    .hero p { font-size: 17px; opacity: .92; max-width: 520px; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+    .target-art { justify-self: center; }
+    .range-status { display: grid; grid-template-columns: repeat(4, 1fr); background: #fff; color: var(--ink); border-radius: 12px 12px 0 0; margin-top: 56px; box-shadow: 0 -4px 20px rgba(0,0,0,.08); }
+    .range-status > div { padding: 18px 20px; border-right: 1px solid var(--line); }
+    .range-status > div:last-child { border-right: 0; }
+    .range-status small { display: block; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+    .range-status b { font-size: 20px; }
+    .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #16a34a; margin-right: 6px; box-shadow: 0 0 0 3px #dcfce7; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; border-bottom: 2px solid var(--line); margin-bottom: 20px; overflow-x: auto; }
+    .tab { background: none; border: 0; padding: 10px 16px; font-weight: 600; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap; }
+    .tab[aria-selected="true"] { color: var(--forest); border-bottom-color: var(--red); }
+    .tab-panel { display: grid; grid-template-columns: 1fr 280px; gap: 24px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 24px; }
+    .tab-panel ul { margin: 12px 0 0; padding-left: 18px; }
+    .spec { background: var(--paper); border-radius: 8px; padding: 16px; font-size: 14px; }
+    .spec dt { color: var(--muted); font-size: 12px; text-transform: uppercase; }
+    .spec dd { margin: 0 0 10px; font-weight: 600; }
+
+    /* Events */
+    .events { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .event-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+    .event-date { background: var(--forest); color: #fff; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
+    .event-date b { font-size: 22px; }
+    .event-body { padding: 16px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: #fef9c3; color: #854d0e; }
+    .tag.red { background: #fee2e2; color: #991b1b; }
+    .tag.green { background: #dcfce7; color: #166534; }
+    .event-body .meta { color: var(--muted); font-size: 13px; }
+    .spots { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+    .spots span { display: block; height: 100%; background: var(--red); }
+    .event-body .btn { margin-top: auto; }
+    .event-card.registered .register-btn { background: #16a34a; }
+
+    /* Leaderboard */
+    .board-toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+    .board-toolbar label { font-size: 14px; color: var(--muted); }
+    select, input, textarea { font: inherit; padding: 8px 10px; border: 1px solid #c8d2c6; border-radius: 6px; background: #fff; color: var(--ink); }
+    .table-wrap { overflow-x: auto; background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+    table { width: 100%; border-collapse: collapse; min-width: 560px; }
+    th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--line); }
+    th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); background: var(--paper); }
+    tr:last-child td { border-bottom: 0; }
+    .rank { font-weight: 800; width: 48px; }
+    .rank.r1 { color: #b45309; }
+    .score { font-variant-numeric: tabular-nums; font-weight: 700; }
+
+    /* Membership */
+    .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: stretch; }
+    .tier { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 10px; position: relative; }
+    .tier.featured { border: 2px solid var(--red); }
+    .tier.featured::before { content: "Most popular"; position: absolute; top: -12px; left: 24px; background: var(--red); color: #fff; font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: 99px; }
+    .price { font-size: 32px; font-weight: 800; }
+    .price small { font-size: 14px; color: var(--muted); font-weight: 400; }
+    .tier ul { padding-left: 18px; margin: 0; flex: 1; }
+    .billing-toggle { display: inline-flex; background: #e7ece4; border-radius: 99px; padding: 4px; margin-bottom: 22px; }
+    .billing-toggle button { border: 0; background: none; padding: 6px 14px; border-radius: 99px; font-size: 14px; font-weight: 600; color: var(--muted); }
+    .billing-toggle button.on { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+
+    /* Coaches */
+    .coaches { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .coach { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; text-align: center; }
+    .avatar { width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 10px; display: grid; place-items: center; font-weight: 800; color: #fff; font-size: 22px; }
+    .coach small { color: var(--muted); display: block; }
+
+    /* FAQ */
+    .faq { max-width: 760px; }
+    .faq details { background: var(--card); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px; }
+    .faq summary { padding: 14px 18px; font-weight: 600; cursor: pointer; list-style: none; display: flex; justify-content: space-between; }
+    .faq summary::after { content: "+"; font-size: 20px; line-height: 1; color: var(--red); }
+    .faq details[open] summary::after { content: "–"; }
+    .faq details p { margin: 0; padding: 0 18px 16px; color: var(--muted); }
+
+    /* Footer */
+    footer { background: #0f2a18; color: #c7d8cc; padding: 40px 0; font-size: 14px; }
+    footer .wrap { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 24px; }
+    footer h3 { color: #fff; font-size: 15px; margin-bottom: 8px; }
+    .newsletter { display: flex; gap: 8px; margin-top: 10px; }
+    .newsletter input { flex: 1; min-width: 0; }
+
+    /* Modal */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(10,25,15,.55); display: grid; place-items: center; z-index: 100; padding: 16px; }
+    .modal { background: #fff; border-radius: 14px; width: 100%; max-width: 520px; max-height: calc(100vh - 32px); overflow: auto; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+    .modal-head { display: flex; justify-content: space-between; align-items: center; padding: 18px 22px; border-bottom: 1px solid var(--line); }
+    .icon-btn { background: none; border: 0; font-size: 22px; line-height: 1; color: var(--muted); padding: 4px 8px; }
+    .modal form { padding: 20px 22px; display: grid; gap: 14px; }
+    .field { display: grid; gap: 6px; }
+    .field label { font-size: 13px; font-weight: 600; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .lanes { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+    .lane { border: 1px solid #c8d2c6; background: #fff; border-radius: 6px; padding: 8px 0; font-size: 13px; font-weight: 600; }
+    .lane.taken { background: #f1f1ee; color: #a3a3a3; cursor: not-allowed; text-decoration: line-through; }
+    .lane.selected { background: var(--forest); color: #fff; border-color: var(--forest); }
+    .check { display: flex; gap: 8px; align-items: center; font-size: 14px; }
+    .summary { background: var(--paper); border-radius: 8px; padding: 12px 14px; font-size: 14px; display: flex; justify-content: space-between; }
+    .modal-foot { display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px; }
+
+    /* Drawer */
+    .drawer-backdrop { position: fixed; inset: 0; background: rgba(10,25,15,.4); z-index: 90; }
+    .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 360px; max-width: 100%; background: #fff; z-index: 95; transform: translateX(100%); transition: transform .25s ease; display: flex; flex-direction: column; }
+    .drawer.open { transform: none; box-shadow: -10px 0 40px rgba(0,0,0,.2); }
+    .drawer-body { padding: 20px 22px; display: grid; gap: 16px; overflow: auto; }
+    .member-card { background: linear-gradient(135deg, var(--forest), var(--forest-2)); color: #fff; border-radius: 12px; padding: 18px; }
+    .member-card small { opacity: .8; }
+    .scorecard { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; font-size: 13px; text-align: center; }
+    .scorecard span { padding: 6px 0; border-radius: 4px; font-weight: 700; }
+    .s10, .sX { background: #fde047; } .s9 { background: #fef08a; }
+    .s8, .s7 { background: #fecaca; } .s6 { background: #bfdbfe; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 12px 18px; border-radius: 8px; z-index: 120; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+
+    @media (max-width: 900px) {
+      .main-nav { display: none; position: absolute; top: 64px; left: 0; right: 0; background: var(--forest); flex-direction: column; padding: 8px 16px 16px; }
+      .main-nav.open { display: flex; }
+      .site-header .wrap { gap: 10px; }
+      .brand { font-size: 16px; }
+      .header-actions { margin-left: auto; }
+      .menu-toggle { display: block; }
+      .header-actions .btn-ghost { display: none; }
+      .hero-grid, .tab-panel { grid-template-columns: 1fr; }
+      .target-art { display: none; }
+      .hero h1 { font-size: 34px; }
+      .range-status { grid-template-columns: 1fr 1fr; }
+      .range-status > div:nth-child(2) { border-right: 0; }
+      .events, .tiers { grid-template-columns: 1fr; }
+      .coaches { grid-template-columns: 1fr 1fr; }
+      footer .wrap { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="#top" id="brand">
+        <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true">
+          <circle cx="14" cy="14" r="13" fill="#fff"/><circle cx="14" cy="14" r="10" fill="#111"/>
+          <circle cx="14" cy="14" r="7.5" fill="#2563eb"/><circle cx="14" cy="14" r="5" fill="#b91c1c"/><circle cx="14" cy="14" r="2.5" fill="#eab308"/>
+        </svg>
+        Oakridge Archers
+      </a>
+      <nav class="main-nav" id="mainNav" aria-label="Main">
+        <a href="#disciplines" data-section="disciplines">Disciplines</a>
+        <a href="#events" data-section="events">Events</a>
+        <a href="#leaderboard" data-section="leaderboard">Leaderboard</a>
+        <a href="#membership" data-section="membership">Membership</a>
+        <a href="#coaches" data-section="coaches">Coaches</a>
+        <a href="#faq" data-section="faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="btn btn-ghost" id="tourBtn" data-tour-chooser>Site tours</button>
+        <button class="btn btn-gold" id="memberLoginBtn">Member area</button>
+      </div>
+      <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="mainNav">Menu</button>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero" id="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="tag">Est. 1972 · Archery GB affiliated</span>
+            <h1>Find your aim at Oakridge.</h1>
+            <p>Outdoor range, indoor winter hall and qualified coaches for every level. Try a beginner's course, shoot with the club on a Sunday, or compete in our county league.</p>
+            <div class="hero-cta">
+              <button class="btn btn-primary" id="bookSessionBtn">Book a range session</button>
+              <button class="btn btn-ghost" id="beginnersBtn" data-goto="events">Beginner's courses</button>
+            </div>
+          </div>
+          <svg class="target-art" width="260" height="260" viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="50" cy="50" r="48" fill="#fff"/><circle cx="50" cy="50" r="38" fill="#111"/>
+            <circle cx="50" cy="50" r="29" fill="#2563eb"/><circle cx="50" cy="50" r="19" fill="#b91c1c"/>
+            <circle cx="50" cy="50" r="10" fill="#eab308"/>
+            <line x1="52" y1="47" x2="92" y2="12" stroke="#fef3c7" stroke-width="1.5"/>
+            <path d="M88 10 L96 6 L93 14 Z" fill="#fef3c7"/>
+          </svg>
+        </div>
+        <div class="range-status" id="rangeStatus">
+          <div><small>Range</small><b><span class="dot"></span>Open</b></div>
+          <div><small>Lanes free now</small><b id="lanesFree">7 of 12</b></div>
+          <div><small>Wind</small><b>8 mph SW</b></div>
+          <div><small>Closes</small><b>20:00</b></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="disciplines">
+      <div class="wrap">
+        <h2>Disciplines</h2>
+        <p class="section-sub">We coach and compete in four styles. Pick one to see what you need.</p>
+        <div class="tabs" role="tablist" id="disciplineTabs">
+          <button class="tab" role="tab" data-tab="target" aria-selected="true">Target</button>
+          <button class="tab" role="tab" data-tab="field" aria-selected="false">Field</button>
+          <button class="tab" role="tab" data-tab="3d" aria-selected="false">3D</button>
+          <button class="tab" role="tab" data-tab="barebow" aria-selected="false">Barebow</button>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="panel-target" data-panel="target">
+          <div>
+            <h3>Target archery</h3>
+            <p>The Olympic discipline. Shoot at a 122 cm face from fixed distances on a flat, measured range.</p>
+            <ul><li>Distances 18 m indoors, 30 to 70 m outdoors</li><li>Recurve, compound or longbow</li><li>Weekly club rounds every Sunday</li></ul>
+          </div>
+          <dl class="spec"><dt>Typical round</dt><dd>WA 720 (72 arrows)</dd><dt>Kit hire</dt><dd>Available</dd><dt>Level</dt><dd>All levels</dd></dl>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="panel-field" data-panel="field" hidden>
+          <div>
+            <h3>Field archery</h3>
+            <p>Walk a course through the woodland behind the clubhouse, shooting at marked and unmarked distances.</p>
+            <ul><li>24-target woodland course</li><li>Uphill and downhill shots</li><li>Monthly course days</li></ul>
+          </div>
+          <dl class="spec"><dt>Typical round</dt><dd>WA Field 24 targets</dd><dt>Kit hire</dt><dd>Limited</dd><dt>Level</dt><dd>Intermediate</dd></dl>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="panel-3d" data-panel="3d" hidden>
+          <div>
+            <h3>3D archery</h3>
+            <p>Life-size foam animal targets placed along the woodland course. Scoring zones are on the animal.</p>
+            <ul><li>28 foam animal targets</li><li>Unmarked distances only</li><li>Great for traditional bows</li></ul>
+          </div>
+          <dl class="spec"><dt>Typical round</dt><dd>IFAA 3D 28 targets</dd><dt>Kit hire</dt><dd>No</dd><dt>Level</dt><dd>Intermediate+</dd></dl>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="panel-barebow" data-panel="barebow" hidden>
+          <div>
+            <h3>Barebow</h3>
+            <p>A recurve with no sight and no stabilisers. You aim instinctively or by string-walking.</p>
+            <ul><li>Simple, light kit</li><li>Fastest-growing class at the club</li><li>Shoots on target and field rounds</li></ul>
+          </div>
+          <dl class="spec"><dt>Typical round</dt><dd>Portsmouth (indoor)</dd><dt>Kit hire</dt><dd>Available</dd><dt>Level</dt><dd>All levels</dd></dl>
+        </div>
+      </div>
+    </section>
+
+    <section id="events">
+      <div class="wrap">
+        <h2>Upcoming events</h2>
+        <p class="section-sub">Courses, club shoots and competitions. Register to save your place.</p>
+        <div class="events" id="eventList">
+          <article class="event-card" id="event-beginners" data-event="beginners">
+            <div class="event-date"><span>Sat 18 Oct</span><b>09:30</b></div>
+            <div class="event-body">
+              <span class="tag green">Beginner's course</span>
+              <h3>Six-week beginner's course</h3>
+              <div class="meta">Indoor hall · All kit provided · £95</div>
+              <div class="spots" title="10 of 12 places taken"><span style="width:83%"></span></div>
+              <div class="meta">2 places left</div>
+              <button class="btn btn-primary register-btn">Register</button>
+            </div>
+          </article>
+          <article class="event-card" id="event-league" data-event="league">
+            <div class="event-date"><span>Sun 26 Oct</span><b>10:00</b></div>
+            <div class="event-body">
+              <span class="tag red">Competition</span>
+              <h3>County league round 4</h3>
+              <div class="meta">Outdoor range · Portsmouth round · £12</div>
+              <div class="spots" title="18 of 40 places taken"><span style="width:45%"></span></div>
+              <div class="meta">22 places left</div>
+              <button class="btn btn-primary register-btn">Register</button>
+            </div>
+          </article>
+          <article class="event-card" id="event-field" data-event="field">
+            <div class="event-date"><span>Sat 8 Nov</span><b>11:00</b></div>
+            <div class="event-body">
+              <span class="tag">Club shoot</span>
+              <h3>Woodland field day</h3>
+              <div class="meta">Field course · Bring your own kit · Free</div>
+              <div class="spots" title="9 of 30 places taken"><span style="width:30%"></span></div>
+              <div class="meta">21 places left</div>
+              <button class="btn btn-primary register-btn">Register</button>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="leaderboard">
+      <div class="wrap">
+        <h2>Club leaderboard</h2>
+        <p class="section-sub">Best Portsmouth scores this season (60 arrows, max 600).</p>
+        <div class="board-toolbar" id="boardToolbar">
+          <label for="bowFilter">Bow type</label>
+          <select id="bowFilter">
+            <option value="all">All bows</option>
+            <option value="Recurve">Recurve</option>
+            <option value="Compound">Compound</option>
+            <option value="Barebow">Barebow</option>
+            <option value="Longbow">Longbow</option>
+          </select>
+          <input type="search" id="archerSearch" placeholder="Search archers…" aria-label="Search archers" />
+        </div>
+        <div class="table-wrap">
+          <table id="leaderboardTable">
+            <thead><tr><th>#</th><th>Archer</th><th>Bow</th><th>Score</th><th>10s</th><th>Classification</th></tr></thead>
+            <tbody id="leaderboardBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="membership">
+      <div class="wrap">
+        <h2>Membership</h2>
+        <p class="section-sub">Every membership includes Archery GB insurance and range access.</p>
+        <div class="billing-toggle" id="billingToggle">
+          <button data-billing="monthly" class="on">Monthly</button>
+          <button data-billing="yearly">Yearly (save 15%)</button>
+        </div>
+        <div class="tiers" id="tiers">
+          <div class="tier" id="tier-junior">
+            <h3>Junior</h3>
+            <div class="price" data-monthly="£8" data-yearly="£82">£8<small> /month</small></div>
+            <ul><li>Under 18s</li><li>Supervised sessions only</li><li>Club kit included</li></ul>
+            <button class="btn btn-ghost join-btn" data-tier="Junior">Choose Junior</button>
+          </div>
+          <div class="tier featured" id="tier-adult">
+            <h3>Adult</h3>
+            <div class="price" data-monthly="£18" data-yearly="£184">£18<small> /month</small></div>
+            <ul><li>Unlimited range time</li><li>Indoor winter hall</li><li>League entry discount</li><li>Locker space</li></ul>
+            <button class="btn btn-primary join-btn" data-tier="Adult">Choose Adult</button>
+          </div>
+          <div class="tier" id="tier-family">
+            <h3>Family</h3>
+            <div class="price" data-monthly="£35" data-yearly="£357">£35<small> /month</small></div>
+            <ul><li>2 adults + up to 3 juniors</li><li>Everything in Adult</li><li>Family shoot days</li></ul>
+            <button class="btn btn-ghost join-btn" data-tier="Family">Choose Family</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="coaches">
+      <div class="wrap">
+        <h2>Our coaches</h2>
+        <p class="section-sub">Archery GB qualified and DBS checked.</p>
+        <div class="coaches" id="coachList">
+          <div class="coach"><div class="avatar" style="background:#b91c1c">MH</div><b>Morgan Hale</b><small>Head coach · Recurve</small></div>
+          <div class="coach"><div class="avatar" style="background:#2563eb">PR</div><b>Priya Rao</b><small>Compound · Juniors</small></div>
+          <div class="coach"><div class="avatar" style="background:#14532d">TO</div><b>Tom Okafor</b><small>Field & 3D</small></div>
+          <div class="coach"><div class="avatar" style="background:#a16207">SL</div><b>Sam Lindqvist</b><small>Barebow · Longbow</small></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq">
+      <div class="wrap">
+        <h2>Frequently asked questions</h2>
+        <p class="section-sub">Can't find an answer? Email the club secretary.</p>
+        <div class="faq" id="faqList">
+          <details id="faq-kit"><summary>Do I need my own equipment?</summary><p>No. Beginners use club kit for the whole course. Most members buy their own bow after a few months.</p></details>
+          <details id="faq-age"><summary>Is there a minimum age?</summary><p>Juniors can join from age 8. Under 12s must shoot with a parent or guardian on the range.</p></details>
+          <details id="faq-weather"><summary>What happens if it rains?</summary><p>Light rain doesn't stop us. In high wind or lightning the range officer closes the range, and the status bar at the top of this page updates.</p></details>
+          <details id="faq-try"><summary>Can I try before I join?</summary><p>Yes. Book a one-off taster on any range session using the "Book a range session" button.</p></details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="footer">
+    <div class="wrap">
+      <div>
+        <h3>Oakridge Archers</h3>
+        <p>Oakridge Playing Fields, Mill Lane<br/>Open Tue–Sun, 09:00–20:00</p>
+      </div>
+      <div>
+        <h3>Club</h3>
+        <p>Committee<br/>Safeguarding<br/>Range rules</p>
+      </div>
+      <div id="newsletter">
+        <h3>Newsletter</h3>
+        <p>Club news and results, once a month.</p>
+        <form class="newsletter" id="newsletterForm">
+          <input type="email" id="newsletterEmail" placeholder="you@example.com" aria-label="Email address" required />
+          <button class="btn btn-gold" type="submit">Join</button>
+        </form>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Booking modal -->
+  <div class="modal-backdrop" id="bookingModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="bookingTitle">
+      <div class="modal-head">
+        <h3 id="bookingTitle">Book a range session</h3>
+        <button class="icon-btn" id="closeBooking" aria-label="Close">×</button>
+      </div>
+      <form id="bookingForm">
+        <div class="field" id="field-name">
+          <label for="bkName">Your name</label>
+          <input id="bkName" required placeholder="Full name" />
+        </div>
+        <div class="field-row">
+          <div class="field" id="field-discipline">
+            <label for="bkDiscipline">Discipline</label>
+            <select id="bkDiscipline">
+              <option value="target">Target</option>
+              <option value="field">Field</option>
+              <option value="3d">3D</option>
+              <option value="barebow">Barebow</option>
+            </select>
+          </div>
+          <div class="field" id="field-date">
+            <label for="bkDate">Date</label>
+            <input type="date" id="bkDate" required />
+          </div>
+        </div>
+        <div class="field" id="field-slot">
+          <label for="bkSlot">Time slot</label>
+          <select id="bkSlot">
+            <option value="09:00">09:00 – 11:00</option>
+            <option value="11:00">11:00 – 13:00</option>
+            <option value="14:00">14:00 – 16:00</option>
+            <option value="18:00">18:00 – 20:00 (floodlit)</option>
+          </select>
+        </div>
+        <div class="field" id="field-lane">
+          <label>Lane</label>
+          <div class="lanes" id="laneGrid"></div>
+        </div>
+        <label class="check" id="field-hire"><input type="checkbox" id="bkHire" /> Hire a bow and arrows (+£6)</label>
+        <div class="summary" id="bookingSummary"><span>Session total</span><b id="bookingTotal">£8</b></div>
+        <div class="modal-foot">
+          <button type="button" class="btn btn-ghost" id="cancelBooking">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="confirmBooking">Confirm booking</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Member drawer -->
+  <div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
+  <aside class="drawer" id="memberDrawer" aria-label="Member area" aria-hidden="true">
+    <div class="modal-head">
+      <h3>Member area</h3>
+      <button class="icon-btn" id="closeDrawer" aria-label="Close">×</button>
+    </div>
+    <div class="drawer-body">
+      <div class="member-card" id="memberCard">
+        <small>Adult member · #OA-2291</small>
+        <div style="font-size:20px;font-weight:800;margin:4px 0">Jordan Ellis</div>
+        <small>Recurve · Classification: Bowman 2nd</small>
+      </div>
+      <div id="lastScorecard">
+        <b>Last end · Sun 5 Oct</b>
+        <div class="scorecard" style="margin-top:8px">
+          <span class="sX">X</span><span class="s10">10</span><span class="s9">9</span><span class="s9">9</span><span class="s8">8</span><span class="s6">6</span>
+        </div>
+      </div>
+      <div id="myBookings">
+        <b>My bookings</b>
+        <ul id="myBookingsList" style="padding-left:18px;margin:8px 0 0"><li>Sun 12 Oct · 09:00 · Lane 4</li></ul>
+      </div>
+      <button class="btn btn-primary" id="drawerBookBtn">Book another session</button>
+    </div>
+  </aside>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <!-- Not deferred, so window.Tour exists when the page script below registers its actions. -->
+  <script src="/sdk/tour.js" data-app="archery-club"></script>
+  <script>
+    (() => {
+      const $ = (s, r = document) => r.querySelector(s);
+      const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
+      // Toast
+      let toastTimer;
+      function toast(msg) {
+        const t = $("#toast");
+        t.textContent = msg;
+        t.hidden = false;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => (t.hidden = true), 2600);
+      }
+
+      // Mobile menu and section links
+      $("#menuToggle").addEventListener("click", () => {
+        const open = $("#mainNav").classList.toggle("open");
+        $("#menuToggle").setAttribute("aria-expanded", String(open));
+      });
+      $$(".main-nav a").forEach((a) => a.addEventListener("click", () => $("#mainNav").classList.remove("open")));
+      $$("[data-goto]").forEach((b) => b.addEventListener("click", () => document.getElementById(b.dataset.goto).scrollIntoView()));
+
+      // Highlight the nav link for the section in view
+      const io = new IntersectionObserver((entries) => {
+        for (const e of entries) if (e.isIntersecting) {
+          $$(".main-nav a").forEach((a) => a.classList.toggle("active", a.dataset.section === e.target.id));
+        }
+      }, { rootMargin: "-40% 0px -55% 0px" });
+      $$("main section[id]").forEach((s) => io.observe(s));
+
+      // Discipline tabs
+      function selectTab(name) {
+        $$(".tab").forEach((t) => t.setAttribute("aria-selected", String(t.dataset.tab === name)));
+        $$(".tab-panel").forEach((p) => (p.hidden = p.dataset.panel !== name));
+      }
+      $$(".tab").forEach((t) => t.addEventListener("click", () => selectTab(t.dataset.tab)));
+
+      // Event registration
+      $$(".register-btn").forEach((b) => b.addEventListener("click", () => {
+        const card = b.closest(".event-card");
+        const on = card.classList.toggle("registered");
+        b.textContent = on ? "Registered ✓" : "Register";
+        toast(on ? "You're registered for " + $("h3", card).textContent : "Registration cancelled");
+      }));
+
+      // Leaderboard
+      const archers = [
+        ["Morgan Hale", "Recurve", 581, 38, "Grand Master Bowman"],
+        ["Ava Chen", "Compound", 578, 41, "Master Bowman"],
+        ["Rhys Bowen", "Compound", 572, 35, "Master Bowman"],
+        ["Jordan Ellis", "Recurve", 548, 22, "Bowman 1st"],
+        ["Sam Lindqvist", "Barebow", 531, 14, "Bowman 1st"],
+        ["Hannah Price", "Recurve", 524, 16, "Bowman 2nd"],
+        ["Leo Marsh", "Longbow", 462, 6, "Archer 1st"],
+        ["Grace Ndlovu", "Barebow", 498, 9, "Bowman 3rd"],
+      ];
+      function renderBoard() {
+        const bow = $("#bowFilter").value;
+        const q = $("#archerSearch").value.trim().toLowerCase();
+        const rows = archers
+          .filter((a) => (bow === "all" || a[1] === bow) && a[0].toLowerCase().includes(q))
+          .sort((a, b) => b[2] - a[2]);
+        const body = $("#leaderboardBody");
+        body.replaceChildren();
+        rows.forEach((a, i) => {
+          const tr = document.createElement("tr");
+          tr.dataset.archer = a[0];
+          const cells = [i + 1, a[0], a[1], a[2], a[3], a[4]];
+          cells.forEach((v, c) => {
+            const td = document.createElement("td");
+            td.textContent = v;
+            if (c === 0) td.className = "rank" + (i === 0 ? " r1" : "");
+            if (c === 3) td.className = "score";
+            tr.appendChild(td);
+          });
+          body.appendChild(tr);
+        });
+        if (!rows.length) {
+          const tr = document.createElement("tr");
+          const td = document.createElement("td");
+          td.colSpan = 6;
+          td.textContent = "No archers match.";
+          tr.appendChild(td);
+          body.appendChild(tr);
+        }
+      }
+      $("#bowFilter").addEventListener("change", renderBoard);
+      $("#archerSearch").addEventListener("input", renderBoard);
+      renderBoard();
+
+      // Membership billing toggle
+      $$("#billingToggle button").forEach((b) => b.addEventListener("click", () => {
+        $$("#billingToggle button").forEach((x) => x.classList.toggle("on", x === b));
+        const yearly = b.dataset.billing === "yearly";
+        $$(".tier .price").forEach((p) => {
+          p.firstChild.textContent = yearly ? p.dataset.yearly : p.dataset.monthly;
+          p.querySelector("small").textContent = yearly ? " /year" : " /month";
+        });
+      }));
+      $$(".join-btn").forEach((b) => b.addEventListener("click", () => toast(b.dataset.tier + " membership selected. We'll email you the forms.")));
+
+      // Booking modal
+      const taken = new Set([2, 5, 9, 10, 11]);
+      let selectedLane = null;
+      function renderLanes() {
+        const grid = $("#laneGrid");
+        grid.replaceChildren();
+        for (let n = 1; n <= 12; n++) {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "lane" + (taken.has(n) ? " taken" : "") + (selectedLane === n ? " selected" : "");
+          b.textContent = n;
+          b.dataset.lane = n;
+          b.disabled = taken.has(n);
+          b.addEventListener("click", () => { selectedLane = n; renderLanes(); });
+          grid.appendChild(b);
+        }
+      }
+      function updateTotal() {
+        $("#bookingTotal").textContent = "£" + (8 + ($("#bkHire").checked ? 6 : 0));
+      }
+      function openBooking(args) {
+        closeDrawer();
+        selectedLane = null;
+        renderLanes();
+        if (args && args.discipline) $("#bkDiscipline").value = args.discipline;
+        if (!$("#bkDate").value) $("#bkDate").value = new Date(Date.now() + 864e5).toISOString().slice(0, 10);
+        updateTotal();
+        $("#bookingModal").hidden = false;
+      }
+      function closeBooking() { $("#bookingModal").hidden = true; }
+      $("#bookSessionBtn").addEventListener("click", () => openBooking());
+      $("#drawerBookBtn").addEventListener("click", () => openBooking());
+      $("#closeBooking").addEventListener("click", closeBooking);
+      $("#cancelBooking").addEventListener("click", closeBooking);
+      $("#bookingModal").addEventListener("click", (e) => { if (e.target.id === "bookingModal") closeBooking(); });
+      $("#bkHire").addEventListener("change", updateTotal);
+      $("#bookingForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (!selectedLane) { toast("Pick a free lane first."); return; }
+        const li = document.createElement("li");
+        li.textContent = $("#bkDate").value + " · " + $("#bkSlot").value + " · Lane " + selectedLane;
+        $("#myBookingsList").appendChild(li);
+        closeBooking();
+        toast("Booked lane " + selectedLane + ". See you on the range!");
+      });
+
+      // Member drawer
+      function openDrawer() {
+        $("#memberDrawer").classList.add("open");
+        $("#memberDrawer").setAttribute("aria-hidden", "false");
+        $("#drawerBackdrop").hidden = false;
+      }
+      function closeDrawer() {
+        $("#memberDrawer").classList.remove("open");
+        $("#memberDrawer").setAttribute("aria-hidden", "true");
+        $("#drawerBackdrop").hidden = true;
+      }
+      $("#memberLoginBtn").addEventListener("click", openDrawer);
+      $("#closeDrawer").addEventListener("click", closeDrawer);
+      $("#drawerBackdrop").addEventListener("click", closeDrawer);
+
+      // Newsletter
+      $("#newsletterForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        toast("Subscribed " + $("#newsletterEmail").value);
+        e.target.reset();
+      });
+
+      // Escape closes whatever is open (the tour engine handles its own Escape)
+      document.addEventListener("keydown", (e) => {
+        if (e.key !== "Escape") return;
+        closeBooking();
+        closeDrawer();
+      });
+
+      // Hooks for tours: a custom DOM event (for "dispatch") and registered handlers (for "call").
+      document.addEventListener("club:close-overlays", () => { closeBooking(); closeDrawer(); });
+      document.addEventListener("club:select-tab", (e) => selectTab((e.detail && e.detail.tab) || "target"));
+      if (window.Tour && window.Tour.registerAction) {
+        window.Tour.registerAction("openBooking", (args) => openBooking(args));
+        window.Tour.registerAction("openMemberArea", () => openDrawer());
+        window.Tour.registerAction("closeOverlays", () => { closeBooking(); closeDrawer(); });
+      }
+    })();
+  </script>
+</body>
+</html>
